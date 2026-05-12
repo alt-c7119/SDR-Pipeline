@@ -44,3 +44,34 @@ th { background: var(--gray-100); text-transform: uppercase; font-size: 10px; le
 .drawer textarea { width: 100%; min-height: 70px; }
 dialog { border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+
+.drawer { position: relative; transition: width 0.2s ease, padding 0.2s ease; width: 340px; }
+.drawer-toggle {
+  position: absolute;
+  left: -18px;
+  top: 16px;
+  width: 18px;
+  height: 64px;
+  border: 1px solid var(--gray-200);
+  border-right: none;
+  background: #fff;
+  color: #365170;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggle-chevron { font-size: 12px; line-height: 1; }
+.drawer.collapsed {
+  width: 28px;
+  padding: 16px 0;
+  overflow: visible;
+}
+.drawer.collapsed h2,
+.drawer.collapsed .drawer-body { display: none; }
+.drawer.collapsed .drawer-toggle {
+  left: -18px;
+  border-right: none;
+}
+.drawer.collapsed .toggle-chevron { transform: rotate(180deg); }

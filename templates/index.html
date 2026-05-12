@@ -19,6 +19,11 @@
         <section class="filters"><select><option>Stage</option></select><select><option>Defeasance Status</option></select><select><option>Prepay Category</option></select><select><option>Maturity Range</option></select><select><option>State</option></select><select><option>Master Servicer</option></select></section>
         <section class="table-wrap"><div class="table-header"><span id="leadCount">0 leads</span></div><div class="table-scroll"><table><thead><tr><th>Select</th><th>Stage</th><th>Notes</th><th>Loan Name</th><th>Property Name</th><th>Borrower</th><th>Guarantor</th><th>Maturity Date</th><th>Defeasance Status</th><th>Defeasance Status Next</th><th>Prepay Category</th><th>Prepay Description</th><th>Current Loan Balance</th><th>Securities Loan Balance</th><th>Coupon Type</th><th>Current Note Rate</th><th>State</th><th>City</th><th>Master Servicer</th><th>Originator</th><th>Salesforce Status</th><th>Last Synced At</th><th>Salesforce ID</th></tr></thead><tbody id="leadRows"></tbody></table></div><div class="sync-actions"><button id="syncQualified" class="btn btn-primary">Sync Qualified Leads to Salesforce</button><small>Only leads with Stage = "Qualified" will be synced.</small></div></section>
       </main>
+      <aside class="drawer" id="drawer">
+        <button id="drawerToggle" class="drawer-toggle" aria-label="Collapse lead details" aria-expanded="true">
+          <span class="toggle-chevron">❮</span>
+        </button>
+        <h2>Lead Details</h2><div class="drawer-body" id="drawerBody"><p>Select a lead row to view details.</p></div></aside>
       <aside class="drawer" id="drawer"><h2>Lead Details</h2><div class="drawer-body" id="drawerBody"><p>Select a lead row to view details.</p></div></aside>
     </div>
     <dialog id="syncModal"><p id="syncMessage"></p><div class="modal-actions"><button id="cancelSync" class="btn btn-secondary">Cancel</button><button id="confirmSync" class="btn btn-primary">Confirm</button></div></dialog>
