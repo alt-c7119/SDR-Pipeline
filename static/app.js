@@ -116,3 +116,9 @@ if (drawer && drawerToggle && layout) {
     drawerToggle.setAttribute("aria-label", isCollapsed ? "Expand lead details" : "Collapse lead details");
   };
 }
+
+drawerToggle.onclick = () => {
+  const isCollapsed = drawer.classList.toggle("collapsed");
+  drawerToggle.setAttribute("aria-expanded", String(!isCollapsed));
+  drawerToggle.setAttribute("aria-label", isCollapsed ? "Expand lead details" : "Collapse lead details");
+};
