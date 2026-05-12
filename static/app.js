@@ -106,6 +106,9 @@ bootstrap();
 
 const drawer = document.getElementById("drawer");
 const drawerToggle = document.getElementById("drawerToggle");
+if (drawer && drawerToggle) {
+  drawerToggle.onclick = () => {
+    const isCollapsed = drawer.classList.toggle("collapsed");
 const layout = document.querySelector(".layout");
 
 if (drawer && drawerToggle && layout) {
