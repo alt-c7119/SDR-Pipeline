@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defeasance & Hedging Lead Qualification</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="brand">Commercial Defeasance</div>
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">Tools</a>
+        <a href="#" class="active">Pipeline</a>
+      </nav>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-section">HOME</div>
+        <div class="sidebar-section">DEFEASANCE / HEDGING PIPELINE</div>
+        <a class="sidebar-link active" href="#">New Leads</a>
+        <a class="sidebar-link" href="#">In Progress</a>
+        <a class="sidebar-link" href="#">Qualified Leads</a>
+        <a class="sidebar-link" href="#">Salesforce Sync Log</a>
+      </aside>
+
+      <main class="content">
+        <h1>Defeasance &amp; Hedging Lead Qualification</h1>
+
+        <section class="search-row">
+          <input type="text" placeholder="Search loans / borrower / property / pool" />
+          <button class="btn btn-secondary">Filters</button>
+        </section>
+
+        <section class="filters">
+          <select><option>Stage</option></select>
+          <select><option>Defeasance Status</option></select>
+          <select><option>Prepay Category</option></select>
+          <select><option>Maturity Range</option></select>
+          <select><option>State</option></select>
+          <select><option>Master Servicer</option></select>
+        </section>
+
+        <section class="table-wrap">
+          <div class="table-header">
+            <span>42 leads</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Stage</th>
+                  <th>Notes</th>
+                  <th>Loan Name</th>
+                  <th>Property Name</th>
+                  <th>Borrower</th>
+                  <th>Guarantor</th>
+                  <th>Maturity Date</th>
+                  <th>Defeasance Status</th>
+                  <th>Defeasance Status Next</th>
+                  <th>Prepay Category</th>
+                  <th>Prepay Description</th>
+                  <th>Current Loan Balance</th>
+                  <th>Securities Loan Balance</th>
+                  <th>Coupon Type</th>
+                  <th>Current Note Rate</th>
+                  <th>State</th>
+                  <th>City</th>
+                  <th>Master Servicer</th>
+                  <th>Originator</th>
+                  <th>Salesforce Status</th>
+                  <th>Last Synced At</th>
+                  <th>Salesforce ID</th>
+                </tr>
+              </thead>
+              <tbody id="leadRows"></tbody>
+            </table>
+          </div>
+
+          <div class="sync-actions">
+            <button id="syncQualified" class="btn btn-primary">Sync Qualified Leads to Salesforce</button>
+            <small>Only leads with Stage = "Qualified" will be synced.</small>
+          </div>
+        </section>
+      </main>
+
+      <aside class="drawer" id="drawer">
+        <div class="drawer-head">
+          <h2>Lead Details</h2>
+        </div>
+        <div class="drawer-body" id="drawerBody">
+          <p>Select a lead row to view details.</p>
+        </div>
+      </aside>
+    </div>
+
+    <dialog id="syncModal">
+      <p id="syncMessage"></p>
+      <div class="modal-actions">
+        <button id="cancelSync" class="btn btn-secondary">Cancel</button>
+        <button id="confirmSync" class="btn btn-primary">Confirm</button>
+      </div>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
