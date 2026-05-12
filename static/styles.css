@@ -35,6 +35,7 @@ input, select, .btn { border: 1px solid var(--gray-200); border-radius: 4px; pad
 .table-wrap { border-top: 1px solid var(--gray-200); padding-top: 12px; }
 .table-header { margin-bottom: 8px; color: var(--gray-500); }
 .table-scroll { overflow-x: auto; border: 1px solid var(--gray-200); }
+table { border-collapse: collapse; min-width: 1600px; width: max-content; }
 table { border-collapse: collapse; min-width: 2100px; width: 100%; }
 th, td { padding: 9px; border-bottom: 1px solid var(--gray-200); white-space: nowrap; }
 th { background: var(--gray-100); text-transform: uppercase; font-size: 10px; letter-spacing: .02em; color: #5e7188; }
@@ -47,12 +48,16 @@ th { background: var(--gray-100); text-transform: uppercase; font-size: 10px; le
 .pill-error { background: #fde8ec; color: #b32148; }
 .sync-actions { text-align: center; margin: 14px 0; display: flex; flex-direction: column; gap: 6px; }
 
+.drawer { position: relative; width: 340px; min-width: 340px; border-left: 1px solid var(--gray-200); padding: 16px; background: #fbfcfe; overflow: auto; flex: 0 0 340px; transition: width .22s ease, min-width .22s ease, padding .22s ease, flex-basis .22s ease; }
 .drawer { position: relative; width: 340px; min-width: 340px; border-left: 1px solid var(--gray-200); padding: 16px; background: #fbfcfe; overflow: auto; transition: width .22s ease, min-width .22s ease, padding .22s ease; }
 .drawer { border-left: 1px solid var(--gray-200); padding: 16px; background: #fbfcfe; overflow: auto; }
 .drawer h3 { margin: 16px 0 8px; font-size: 13px; color: #28496b; }
 .drawer .field { margin-bottom: 8px; }
 .drawer .label { color: #6e8298; font-size: 11px; }
 .drawer textarea { width: 100%; min-height: 70px; }
+.drawer-toggle { position: absolute; left: -18px; top: 16px; width: 18px; height: 72px; border: 1px solid var(--gray-200); border-right: none; background: #fff; color: #365170; border-radius: 6px 0 0 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.toggle-chevron { font-size: 12px; line-height: 1; }
+.drawer.collapsed { width: 18px; min-width: 18px; flex-basis: 18px; padding: 16px 0; overflow: visible; border-left-color: transparent; }
 .drawer-toggle { position: absolute; left: -18px; top: 16px; width: 18px; height: 72px; border: 1px solid var(--gray-200); border-right: none; background: #fff; color: #365170; border-radius: 6px 0 0 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
 .toggle-chevron { font-size: 12px; line-height: 1; }
 .drawer.collapsed { width: 18px; min-width: 18px; padding: 16px 0; overflow: visible; }
