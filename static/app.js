@@ -109,7 +109,19 @@ const drawerToggle = document.getElementById("drawerToggle");
 if (drawer && drawerToggle) {
   drawerToggle.onclick = () => {
     const isCollapsed = drawer.classList.toggle("collapsed");
+const layout = document.querySelector(".layout");
+
+if (drawer && drawerToggle && layout) {
+  drawerToggle.onclick = () => {
+    const isCollapsed = drawer.classList.toggle("collapsed");
+    layout.classList.toggle("drawer-collapsed", isCollapsed);
     drawerToggle.setAttribute("aria-expanded", String(!isCollapsed));
     drawerToggle.setAttribute("aria-label", isCollapsed ? "Expand lead details" : "Collapse lead details");
   };
 }
+
+drawerToggle.onclick = () => {
+  const isCollapsed = drawer.classList.toggle("collapsed");
+  drawerToggle.setAttribute("aria-expanded", String(!isCollapsed));
+  drawerToggle.setAttribute("aria-label", isCollapsed ? "Expand lead details" : "Collapse lead details");
+};
