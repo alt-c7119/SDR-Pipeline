@@ -12,6 +12,8 @@ body { margin: 0; font: 13px/1.4 Inter, Arial, sans-serif; color: var(--text); b
 .top-nav { height: 56px; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
 .top-nav nav a { color: #c8d7eb; margin-left: 16px; text-decoration: none; }
 .top-nav nav a.active { color: #fff; font-weight: 600; }
+.layout { display: grid; grid-template-columns: 220px 1fr var(--drawer-width, 340px); min-height: calc(100vh - 56px); }
+.layout.drawer-collapsed { --drawer-width: 28px; }
 .layout { display: grid; grid-template-columns: 220px 1fr 340px; min-height: calc(100vh - 56px); }
 .sidebar { border-right: 1px solid var(--gray-200); padding: 16px 0; background: #fbfcfd; }
 .sidebar-section { font-size: 11px; color: #7a8ea5; padding: 10px 16px; font-weight: 700; }
@@ -65,6 +67,7 @@ dialog { border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; }
 .toggle-chevron { font-size: 12px; line-height: 1; }
 .drawer.collapsed {
   width: 28px;
+  min-width: 28px;
   padding: 16px 0;
   overflow: visible;
 }
