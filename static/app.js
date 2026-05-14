@@ -7,6 +7,7 @@ const syncModal = document.getElementById("syncModal");
 const leadCount = document.getElementById("leadCount");
 const drawer = document.getElementById("drawer");
 const drawerToggle = document.getElementById("drawerToggle");
+const toggleText = document.querySelector(".toggle-text");
 const layout = document.querySelector(".layout");
 
 function statusPill(status) {
@@ -179,6 +180,20 @@ async function syncQualified() {
   };
 }
 
+function updateDrawerToggleState(isCollapsed) {
+  if (!drawerToggle) return;
+
+  drawerToggle.setAttribute("aria-expanded", String(!isCollapsed));
+  drawerToggle.setAttribute(
+    "aria-label",
+    isCollapsed ? "Expand lead details" : "Collapse lead details"
+  );
+
+  if (toggleText) {
+    toggleText.textContent = isCollapsed ? "Expand" : "Collapse";
+  }
+}
+
 leadRows.addEventListener("click", (event) => {
   const row = event.target.closest("tr");
   if (!row) return;
@@ -207,6 +222,8 @@ document.getElementById("syncQualified").onclick = syncQualified;
 document.getElementById("cancelSync").onclick = () => syncModal.close();
 
 if (drawer && drawerToggle) {
+  updateDrawerToggleState(drawer.classList.contains("collapsed"));
+
   drawerToggle.onclick = () => {
     const isCollapsed = drawer.classList.toggle("collapsed");
 
@@ -214,11 +231,7 @@ if (drawer && drawerToggle) {
       layout.classList.toggle("drawer-collapsed", isCollapsed);
     }
 
-    drawerToggle.setAttribute("aria-expanded", String(!isCollapsed));
-    drawerToggle.setAttribute(
-      "aria-label",
-      isCollapsed ? "Expand lead details" : "Collapse lead details"
-    );
+    updateDrawerToggleState(isCollapsed);
   };
 }
 

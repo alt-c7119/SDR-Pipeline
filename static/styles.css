@@ -268,7 +268,7 @@ th {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.03em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .drawer.collapsed {
@@ -286,14 +286,6 @@ th {
 
 .drawer.collapsed .toggle-chevron {
   transform: rotate(180deg);
-}
-
-.drawer.collapsed .toggle-text::before {
-  content: "Expand";
-}
-
-.drawer:not(.collapsed) .toggle-text::before {
-  content: "Collapse";
 }
 
 dialog {
