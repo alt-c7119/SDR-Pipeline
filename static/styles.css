@@ -234,26 +234,41 @@ th {
 
 .drawer-toggle {
   position: absolute;
-  left: -18px;
-  top: 16px;
-  width: 18px;
-  height: 72px;
-  border: 1px solid var(--gray-200);
-  border-right: none;
-  background: #fff;
-  color: #365170;
-  border-radius: 6px 0 0 6px;
+  left: -30px;
+  top: 22px;
+  width: 30px;
+  height: 108px;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 8px 0 0 8px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 20;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  gap: 8px;
+  z-index: 30;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.drawer-toggle:hover {
+  background: #155db5;
 }
 
 .toggle-chevron {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
+  font-weight: 700;
+}
+
+.toggle-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .drawer.collapsed {
@@ -271,6 +286,14 @@ th {
 
 .drawer.collapsed .toggle-chevron {
   transform: rotate(180deg);
+}
+
+.drawer.collapsed .toggle-text::before {
+  content: "Expand";
+}
+
+.drawer:not(.collapsed) .toggle-text::before {
+  content: "Collapse";
 }
 
 dialog {
