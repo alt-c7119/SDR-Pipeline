@@ -4,9 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Defeasance & Hedging Lead Qualification</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
-
   <body>
     <header class="top-nav">
       <div class="brand">Commercial Defeasance</div>
@@ -36,31 +35,18 @@
         </section>
 
         <section class="filters">
-          <select>
-            <option>Stage</option>
-          </select>
-          <select>
-            <option>Defeasance Status</option>
-          </select>
-          <select>
-            <option>Prepay Category</option>
-          </select>
-          <select>
-            <option>Maturity Range</option>
-          </select>
-          <select>
-            <option>State</option>
-          </select>
-          <select>
-            <option>Master Servicer</option>
-          </select>
+          <select><option>Stage</option></select>
+          <select><option>Defeasance Status</option></select>
+          <select><option>Prepay Category</option></select>
+          <select><option>Maturity Range</option></select>
+          <select><option>State</option></select>
+          <select><option>Master Servicer</option></select>
         </section>
 
         <section class="table-wrap">
           <div class="table-header">
-            <span id="leadCount">0 leads</span>
+            <span>42 leads</span>
           </div>
-
           <div class="table-scroll">
             <table>
               <thead>
@@ -95,25 +81,16 @@
           </div>
 
           <div class="sync-actions">
-            <button id="syncQualified" class="btn btn-primary">
-              Sync Qualified Leads to Salesforce
-            </button>
+            <button id="syncQualified" class="btn btn-primary">Sync Qualified Leads to Salesforce</button>
             <small>Only leads with Stage = "Qualified" will be synced.</small>
           </div>
         </section>
       </main>
 
       <aside class="drawer" id="drawer">
-        <button
-          id="drawerToggle"
-          class="drawer-toggle"
-          aria-label="Collapse lead details"
-          aria-expanded="true"
-        >
-          <span class="toggle-chevron">❮</span>
-        </button>
-
-        <h2>Lead Details</h2>
+        <div class="drawer-head">
+          <h2>Lead Details</h2>
+        </div>
         <div class="drawer-body" id="drawerBody">
           <p>Select a lead row to view details.</p>
         </div>
@@ -128,6 +105,6 @@
       </div>
     </dialog>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="app.js"></script>
   </body>
 </html>
