@@ -206,7 +206,8 @@ th {
   border-left: 1px solid var(--gray-200);
   padding: 16px;
   background: #fbfcfe;
-  overflow: auto;
+  overflow: visible;
+  z-index: 20;
   transition:
     width 0.22s ease,
     min-width 0.22s ease,
@@ -233,6 +234,12 @@ th {
   min-height: 70px;
 }
 
+.drawer-body {
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .drawer-toggle {
   position: absolute;
   top: 18px;
@@ -249,7 +256,7 @@ th {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  z-index: 40;
+  z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
