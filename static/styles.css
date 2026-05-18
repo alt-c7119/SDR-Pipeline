@@ -235,14 +235,14 @@ th {
 
 .drawer-toggle {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 34px;
+  top: 18px;
+  left: -30px;
+  width: 30px;
   height: 112px;
   border: none;
   background: var(--blue);
   color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 0 0 8px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -290,9 +290,7 @@ th {
 }
 
 .drawer.collapsed .drawer-toggle {
-  position: fixed;
-  right: 8px;
-  top: 120px;
+  left: -30px;
 }
 
 dialog {

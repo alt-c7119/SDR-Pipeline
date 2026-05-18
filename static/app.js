@@ -222,7 +222,13 @@ document.getElementById("syncQualified").onclick = syncQualified;
 document.getElementById("cancelSync").onclick = () => syncModal.close();
 
 if (drawer && drawerToggle) {
-  updateDrawerToggleState(drawer.classList.contains("collapsed"));
+  const isInitiallyCollapsed = drawer.classList.contains("collapsed");
+
+  if (layout) {
+    layout.classList.toggle("drawer-collapsed", isInitiallyCollapsed);
+  }
+
+  updateDrawerToggleState(isInitiallyCollapsed);
 
   drawerToggle.onclick = () => {
     const isCollapsed = drawer.classList.toggle("collapsed");
