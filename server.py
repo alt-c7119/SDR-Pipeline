@@ -5,11 +5,8 @@ app = Flask(__name__)
 
 STAGES = [
     "New",
-    "Researching",
-    "Contact Identified",
     "Outreach Started",
-    "Engaged",
-    "Needs Follow-Up",
+    "Follow-Up",
     "Not a Fit",
     "Qualified",
 ]
