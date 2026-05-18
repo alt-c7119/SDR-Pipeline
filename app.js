@@ -1,5 +1,94 @@
-let stages = [];
-let leads = [];
+const stages = [
+  "New",
+  "Researching",
+  "Contact Identified",
+  "Outreach Started",
+  "Engaged",
+  "Needs Follow-Up",
+  "Not a Fit",
+  "Qualified",
+];
+
+const leads = [
+  {
+    id: 1,
+    pipeline_stage: "New",
+    notes: "",
+    loanname: "JPMC 2014-C8",
+    propname: "Riverside Plaza",
+    origborrowername: "Terreno Realty",
+    guarantor: "Terreno Realty",
+    maturitydt: "2029-04-15",
+    defeasstatus: "Not Defeased",
+    defeasstatnx: "N/A",
+    prepaycategory: "None",
+    prepaydesc: "None",
+    curloanbal: "$24,850,000",
+    secloanbal: "$24,200,000",
+    coupontype: "Fixed",
+    currentnoterate: "5.12%",
+    state: "CA",
+    city: "San Diego",
+    masterservicer: "Wells",
+    originator: "JPMC",
+    poolnum: "C8",
+    originationdt: "2014-02-01",
+    curcpn: "5.25",
+    loanpurpose: "Acquisition",
+    bloombergname: "Terreno",
+    affiliatedsponsors: "N/A",
+    proptypecode: "OF",
+    proptypenorm: "Office",
+    propertysubtype: "CBD",
+    address: "100 Main St",
+    county: "San Diego",
+    zip: "92101",
+    msaname: "San Diego",
+    submarket: "Downtown",
+    salesforceStatus: "Not Synced",
+    lastSyncedAt: "",
+    salesforceId: "",
+  },
+  {
+    id: 2,
+    pipeline_stage: "Qualified",
+    notes: "Ready to sync",
+    loanname: "WELLS 2014-C7",
+    propname: "Parkview Office Tower",
+    origborrowername: "Brookfield",
+    guarantor: "Brookfield",
+    maturitydt: "2028-07-01",
+    defeasstatus: "Not Defeased",
+    defeasstatnx: "Likely",
+    prepaycategory: "Refinance",
+    prepaydesc: "Upcoming refinance",
+    curloanbal: "$41,650,000",
+    secloanbal: "$41,200,000",
+    coupontype: "Fixed",
+    currentnoterate: "4.9%",
+    state: "NY",
+    city: "New York",
+    masterservicer: "KeyBank",
+    originator: "Wells Fargo",
+    poolnum: "C7",
+    originationdt: "2014-05-22",
+    curcpn: "4.95",
+    loanpurpose: "Refinance",
+    bloombergname: "Brookfield",
+    affiliatedsponsors: "Brookfield AM",
+    proptypecode: "OF",
+    proptypenorm: "Office",
+    propertysubtype: "Class A",
+    address: "22 Park Ave",
+    county: "New York",
+    zip: "10016",
+    msaname: "NYC",
+    submarket: "Midtown",
+    salesforceStatus: "Synced",
+    lastSyncedAt: "2026-05-12 09:14",
+    salesforceId: "SF-0002983",
+  },
+];
 
 const leadRows = document.getElementById("leadRows");
 const drawerBody = document.getElementById("drawerBody");
@@ -11,22 +100,21 @@ const toggleText = document.querySelector(".toggle-text");
 const layout = document.querySelector(".layout");
 
 function statusPill(status) {
-  if (status === "Synced") return '<span class="pill pill-qualified">SYNCED</span>';
-  if (status === "Error") return '<span class="pill pill-error">SYNC ERROR</span>';
+  if (status === "Synced") {
+    return '<span class="pill pill-qualified">SYNCED</span>';
+  }
+
+  if (status === "Error") {
+    return '<span class="pill pill-error">SYNC ERROR</span>';
+  }
+
   return '<span class="pill pill-sync">NOT SYNCED</span>';
 }
 
-async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-
-  return response.json();
-}
-
 function renderTable() {
-  leadCount.textContent = `${leads.length} leads`;
+  if (leadCount) {
+    leadCount.textContent = `${leads.length} leads`;
+  }
 
   leadRows.innerHTML = leads
     .map(
@@ -43,7 +131,7 @@ function renderTable() {
                 .join("")}
             </select>
           </td>
-          <td><a href="#" data-id="${lead.id}">View</a></td>
+          <td><a href="#" class="open-drawer" data-id="${lead.id}">View</a></td>
           <td>${lead.loanname}</td>
           <td>${lead.propname}</td>
           <td>${lead.origborrowername}</td>
@@ -135,49 +223,29 @@ function renderDrawer(lead) {
     <div class="field">Originator: ${lead.originator}</div>
   `;
 
-  document.getElementById("saveNote").onclick = async () => {
-    const notes = document.getElementById("drawerNotes").value;
-
-    await api(`/api/leads/${lead.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ notes }),
-    });
-
-    lead.notes = notes;
+  document.getElementById("saveNote").onclick = () => {
+    lead.notes = document.getElementById("drawerNotes").value;
     renderTable();
   };
 
-  document.getElementById("drawerStage").onchange = async (event) => {
-    const pipeline_stage = event.target.value;
-
-    await api(`/api/leads/${lead.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ pipeline_stage }),
-    });
-
-    lead.pipeline_stage = pipeline_stage;
+  document.getElementById("drawerStage").onchange = (event) => {
+    lead.pipeline_stage = event.target.value;
     renderTable();
   };
 
-  document.getElementById("pushOne").onclick = syncQualified;
+  document.getElementById("pushOne").onclick = () => syncLeads([lead]);
 }
 
-async function syncQualified() {
-  const qualified = leads.filter((lead) => lead.pipeline_stage === "Qualified");
+function syncLeads(records) {
+  const now = new Date().toISOString().replace("T", " ").slice(0, 16);
 
-  document.getElementById(
-    "syncMessage"
-  ).textContent = `You are about to sync ${qualified.length} qualified leads to Salesforce.`;
+  records.forEach((lead) => {
+    lead.salesforceStatus = "Synced";
+    lead.lastSyncedAt = now;
+    lead.salesforceId = lead.salesforceId || `SF-${String(100000 + lead.id)}`;
+  });
 
-  syncModal.showModal();
-
-  document.getElementById("confirmSync").onclick = async () => {
-    const result = await api("/api/sync-qualified", { method: "POST" });
-
-    leads = result.leads;
-    renderTable();
-    syncModal.close();
-  };
+  renderTable();
 }
 
 function updateDrawerToggleState(isCollapsed) {
@@ -199,26 +267,35 @@ leadRows.addEventListener("click", (event) => {
   if (!row) return;
 
   const lead = leads.find((item) => item.id === Number(row.dataset.id));
-  if (lead) renderDrawer(lead);
+  if (!lead) return;
+
+  renderDrawer(lead);
 });
 
-leadRows.addEventListener("change", async (event) => {
+leadRows.addEventListener("change", (event) => {
   if (!event.target.classList.contains("stage-select")) return;
 
   const lead = leads.find((item) => item.id === Number(event.target.dataset.id));
   if (!lead) return;
 
-  const pipeline_stage = event.target.value;
-
-  await api(`/api/leads/${lead.id}`, {
-    method: "PATCH",
-    body: JSON.stringify({ pipeline_stage }),
-  });
-
-  lead.pipeline_stage = pipeline_stage;
+  lead.pipeline_stage = event.target.value;
 });
 
-document.getElementById("syncQualified").onclick = syncQualified;
+document.getElementById("syncQualified").onclick = () => {
+  const qualified = leads.filter((lead) => lead.pipeline_stage === "Qualified");
+
+  document.getElementById(
+    "syncMessage"
+  ).textContent = `You are about to sync ${qualified.length} qualified leads to Salesforce.`;
+
+  syncModal.showModal();
+
+  document.getElementById("confirmSync").onclick = () => {
+    syncLeads(qualified);
+    syncModal.close();
+  };
+};
+
 document.getElementById("cancelSync").onclick = () => syncModal.close();
 
 if (drawer && drawerToggle) {
@@ -241,13 +318,4 @@ if (drawer && drawerToggle) {
   };
 }
 
-async function bootstrap() {
-  const result = await api("/api/leads");
-
-  leads = result.leads;
-  stages = result.stages;
-
-  renderTable();
-}
-
-bootstrap();
+renderTable();
