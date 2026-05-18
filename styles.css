@@ -7,6 +7,8 @@
   --gray-500: #607086;
   --text: #22364d;
   --drawer-width: 340px;
+  --drawer-rail-width: 12px;
+  --drawer-toggle-width: 30px;
 }
 
 * {
@@ -46,12 +48,12 @@ body {
   grid-template-columns: 220px minmax(0, 1fr) var(--drawer-width);
   min-height: calc(100vh - 56px);
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: visible;
   overflow-y: visible;
 }
 
 .layout.drawer-collapsed {
-  --drawer-width: 0;
+  --drawer-width: var(--drawer-rail-width);
 }
 
 .sidebar {
@@ -169,6 +171,14 @@ th {
   color: #364b63;
 }
 
+.sync-actions {
+  text-align: center;
+  margin: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .pill {
   padding: 2px 8px;
   border-radius: 999px;
@@ -191,28 +201,27 @@ th {
   color: #b32148;
 }
 
-.sync-actions {
-  text-align: center;
-  margin: 14px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .drawer {
   position: relative;
   width: var(--drawer-width);
   min-width: var(--drawer-width);
   border-left: 1px solid var(--gray-200);
-  padding: 16px;
+  padding: 0;
   background: #fbfcfe;
   overflow: visible;
-  z-index: 20;
   transition:
     width 0.22s ease,
     min-width 0.22s ease,
     padding 0.22s ease;
 }
+
+.drawer-content {
+  width: 100%;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 16px;
+}
+
 
 .drawer h3 {
   margin: 16px 0 8px;
@@ -234,18 +243,11 @@ th {
   min-height: 70px;
 }
 
-.drawer-body {
-  max-height: calc(100vh - 130px);
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
 .drawer-toggle {
-  position: fixed;
-  top: 148px;
-  right: calc(var(--drawer-width) - 1px);
-  left: auto;
-  width: 30px;
+  position: absolute;
+  top: 18px;
+  left: calc(-1 * var(--drawer-toggle-width));
+  width: var(--drawer-toggle-width);
   height: 112px;
   border: none;
   background: var(--blue);
@@ -257,7 +259,7 @@ th {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  z-index: 9999;
+  z-index: 40;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -281,15 +283,14 @@ th {
 }
 
 .drawer.collapsed {
-  width: 0;
-  min-width: 0;
-  padding: 16px 0;
-  border-left: none;
+  width: var(--drawer-rail-width);
+  min-width: var(--drawer-rail-width);
+  padding: 0;
+  border-left: 1px solid var(--gray-200);
   overflow: visible;
 }
 
-.drawer.collapsed h2,
-.drawer.collapsed .drawer-body {
+.drawer.collapsed .drawer-content {
   display: none;
 }
 
@@ -297,10 +298,8 @@ th {
   transform: rotate(180deg);
 }
 
-.layout.drawer-collapsed .drawer-toggle,
 .drawer.collapsed .drawer-toggle {
-  right: 0;
-  left: auto;
+  left: calc(-1 * var(--drawer-toggle-width));
 }
 
 dialog {
@@ -317,15 +316,15 @@ dialog {
 }
 
 @media (max-width: 1200px) {
-  :root {
-    --drawer-width: 300px;
-  }
-
   .filters {
     grid-template-columns: repeat(3, minmax(120px, 1fr));
   }
 
+  :root {
+    --drawer-width: 300px;
+  }
+
   .layout.drawer-collapsed {
-    --drawer-width: 0;
+    --drawer-width: var(--drawer-rail-width);
   }
 }
