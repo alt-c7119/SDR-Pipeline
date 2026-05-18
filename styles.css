@@ -169,14 +169,6 @@ th {
   color: #364b63;
 }
 
-.sync-actions {
-  text-align: center;
-  margin: 14px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .pill {
   padding: 2px 8px;
   border-radius: 999px;
@@ -199,6 +191,14 @@ th {
   color: #b32148;
 }
 
+.sync-actions {
+  text-align: center;
+  margin: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .drawer {
   position: relative;
   width: var(--drawer-width);
@@ -206,7 +206,8 @@ th {
   border-left: 1px solid var(--gray-200);
   padding: 16px;
   background: #fbfcfe;
-  overflow: auto;
+  overflow: visible;
+  z-index: 20;
   transition:
     width 0.22s ease,
     min-width 0.22s ease,
@@ -233,10 +234,17 @@ th {
   min-height: 70px;
 }
 
+.drawer-body {
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .drawer-toggle {
-  position: absolute;
-  top: 18px;
-  left: -30px;
+  position: fixed;
+  top: 148px;
+  right: calc(var(--drawer-width) - 1px);
+  left: auto;
   width: 30px;
   height: 112px;
   border: none;
@@ -249,7 +257,7 @@ th {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  z-index: 40;
+  z-index: 9999;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -289,8 +297,10 @@ th {
   transform: rotate(180deg);
 }
 
+.layout.drawer-collapsed .drawer-toggle,
 .drawer.collapsed .drawer-toggle {
-  left: -30px;
+  right: 0;
+  left: auto;
 }
 
 dialog {
@@ -307,12 +317,12 @@ dialog {
 }
 
 @media (max-width: 1200px) {
-  .filters {
-    grid-template-columns: repeat(3, minmax(120px, 1fr));
-  }
-
   :root {
     --drawer-width: 300px;
+  }
+
+  .filters {
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
   }
 
   .layout.drawer-collapsed {
