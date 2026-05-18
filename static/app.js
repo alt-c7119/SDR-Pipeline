@@ -70,96 +70,122 @@ function renderTable() {
     .join("");
 }
 
+
+
+function formatValue(value) {
+  if (value === null || value === undefined || value === "") return "-";
+  return value;
+}
+
+function buildAccordionSections(lead) {
+  const activityItems = Array.isArray(lead.activityHistory)
+    ? lead.activityHistory
+    : lead.lastSyncedAt
+      ? [`Last synced at ${lead.lastSyncedAt}`]
+      : ["No activity recorded yet."];
+
+  return [
+    {
+      id: "loan-information",
+      title: "Loan Information",
+      items: [
+        ["Loan Name", lead.loanname],
+        ["Pool Number", lead.poolnum],
+        ["Origination Date", lead.originationdt],
+        ["Maturity Date", lead.maturitydt],
+        ["Current Coupon", lead.curcpn],
+        ["Current Note Rate", lead.currentnoterate],
+        ["Coupon Type", lead.coupontype],
+        ["Loan Purpose", lead.loanpurpose],
+      ],
+    },
+    { id: "balances", title: "Balances", items: [["Securities Loan Balance", lead.secloanbal], ["Current Loan Balance", lead.curloanbal]] },
+    {
+      id: "defeasance-prepay",
+      title: "Defeasance / Prepay",
+      items: [["Defeasance Status", lead.defeasstatus], ["Defeasance Status Next", lead.defeasstatnx], ["Prepay Category", lead.prepaycategory], ["Prepay Description", lead.prepaydesc]],
+    },
+    {
+      id: "borrower-sponsor",
+      title: "Borrower / Sponsor",
+      items: [["Original Borrower Name", lead.origborrowername], ["Guarantor", lead.guarantor], ["Bloomberg Name", lead.bloombergname], ["Affiliated Sponsors", lead.affiliatedsponsors]],
+    },
+    {
+      id: "property",
+      title: "Property",
+      items: [["Property Name", lead.propname], ["Property Type Code", lead.proptypecode], ["Property Type Normalized", lead.proptypenorm], ["Property Subtype", lead.propertysubtype], ["Address", lead.address], ["City", lead.city], ["County", lead.county], ["State", lead.state], ["Zip", lead.zip], ["MSA Name", lead.msaname], ["Submarket", lead.submarket]],
+    },
+    { id: "servicing", title: "Servicing", items: [["Master Servicer", lead.masterservicer], ["Originator", lead.originator]] },
+    {
+      id: "additional-information",
+      title: "Additional Information",
+      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)} <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>`]],
+    },
+    {
+      id: "activity-history",
+      title: "Activity History",
+      activityItems,
+    },
+  ];
+}
+
+function renderAccordion(lead) {
+  const sections = buildAccordionSections(lead);
+  return sections.map((section, idx) => {
+    const expanded = idx === 0 || section.id === "activity-history";
+    const panelId = `panel-${section.id}`;
+    const headerId = `header-${section.id}`;
+    const count = section.items ? section.items.length : section.activityItems.length;
+    const body = section.items
+      ? section.items.map(([label, value]) => `<div class="field"><span class="label">${label}:</span> ${typeof value === "string" && value.includes("<") ? value : formatValue(value)}</div>`).join("")
+      : `<ul class="activity-log">${section.activityItems.map((item) => `<li>${formatValue(item)}</li>`).join("")}</ul>`;
+    return `<section class="accordion-section">
+      <h3>
+        <button class="accordion-trigger" id="${headerId}" aria-expanded="${expanded}" aria-controls="${panelId}" data-panel="${panelId}">
+          <span class="accordion-title-wrap"><span class="chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span><span>${section.title}</span></span>
+          <span class="count-badge">${count}</span>
+        </button>
+      </h3>
+      <div id="${panelId}" role="region" aria-labelledby="${headerId}" class="accordion-panel ${expanded ? "" : "is-collapsed"}">${body}</div>
+    </section>`;
+  }).join('');
+}
+
+
 function renderDrawer(lead) {
-  drawerBody.innerHTML = `
-    <h3>Pipeline Stage</h3>
-    <select id="drawerStage">
-      ${stages
-        .map(
-          (stage) =>
-            `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`
-        )
-        .join("")}
-    </select>
+  drawerBody.innerHTML = `<div class="lead-accordion">${renderAccordion(lead)}</div>`;
 
-    <h3>Notes</h3>
-    <textarea id="drawerNotes">${lead.notes || ""}</textarea>
-    <br>
-    <button id="saveNote" class="btn btn-primary">Save Note</button>
+  const saveNote = document.getElementById("saveNote");
+  const drawerStage = document.getElementById("drawerStage");
+  const pushOne = document.getElementById("pushOne");
 
-    <h3>Salesforce</h3>
-    <div class="field">Status: ${lead.salesforceStatus}</div>
-    <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>
+  if (saveNote) {
+    saveNote.onclick = async () => {
+      const notes = document.getElementById("drawerNotes").value;
+      await api(`/api/leads/${lead.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ notes }),
+      });
+      lead.notes = notes;
+      renderTable();
+    };
+  }
 
-    <h3>Loan Information</h3>
-    <div class="field">Loan Name: ${lead.loanname}</div>
-    <div class="field">Pool Number: ${lead.poolnum}</div>
-    <div class="field">Origination Date: ${lead.originationdt}</div>
-    <div class="field">Maturity Date: ${lead.maturitydt}</div>
-    <div class="field">Current Coupon: ${lead.curcpn}</div>
-    <div class="field">Current Note Rate: ${lead.currentnoterate}</div>
-    <div class="field">Coupon Type: ${lead.coupontype}</div>
-    <div class="field">Loan Purpose: ${lead.loanpurpose}</div>
+  if (drawerStage) {
+    drawerStage.onchange = async (event) => {
+      const pipeline_stage = event.target.value;
+      await api(`/api/leads/${lead.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ pipeline_stage }),
+      });
+      lead.pipeline_stage = pipeline_stage;
+      renderTable();
+    };
+  }
 
-    <h3>Balances</h3>
-    <div class="field">Securities Loan Balance: ${lead.secloanbal}</div>
-    <div class="field">Current Loan Balance: ${lead.curloanbal}</div>
-
-    <h3>Defeasance / Prepay</h3>
-    <div class="field">Defeasance Status: ${lead.defeasstatus}</div>
-    <div class="field">Defeasance Status Next: ${lead.defeasstatnx}</div>
-    <div class="field">Prepay Category: ${lead.prepaycategory}</div>
-    <div class="field">Prepay Description: ${lead.prepaydesc}</div>
-
-    <h3>Borrower / Sponsor</h3>
-    <div class="field">Original Borrower Name: ${lead.origborrowername}</div>
-    <div class="field">Guarantor: ${lead.guarantor}</div>
-    <div class="field">Bloomberg Name: ${lead.bloombergname}</div>
-    <div class="field">Affiliated Sponsors: ${lead.affiliatedsponsors}</div>
-
-    <h3>Property</h3>
-    <div class="field">Property Name: ${lead.propname}</div>
-    <div class="field">Property Type Code: ${lead.proptypecode}</div>
-    <div class="field">Property Type Normalized: ${lead.proptypenorm}</div>
-    <div class="field">Property Subtype: ${lead.propertysubtype}</div>
-    <div class="field">Address: ${lead.address}</div>
-    <div class="field">City: ${lead.city}</div>
-    <div class="field">County: ${lead.county}</div>
-    <div class="field">State: ${lead.state}</div>
-    <div class="field">Zip: ${lead.zip}</div>
-    <div class="field">MSA Name: ${lead.msaname}</div>
-    <div class="field">Submarket: ${lead.submarket}</div>
-
-    <h3>Servicing</h3>
-    <div class="field">Master Servicer: ${lead.masterservicer}</div>
-    <div class="field">Originator: ${lead.originator}</div>
-  `;
-
-  document.getElementById("saveNote").onclick = async () => {
-    const notes = document.getElementById("drawerNotes").value;
-
-    await api(`/api/leads/${lead.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ notes }),
-    });
-
-    lead.notes = notes;
-    renderTable();
-  };
-
-  document.getElementById("drawerStage").onchange = async (event) => {
-    const pipeline_stage = event.target.value;
-
-    await api(`/api/leads/${lead.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ pipeline_stage }),
-    });
-
-    lead.pipeline_stage = pipeline_stage;
-    renderTable();
-  };
-
-  document.getElementById("pushOne").onclick = syncQualified;
+  if (pushOne) {
+    pushOne.onclick = syncQualified;
+  }
 }
 
 async function syncQualified() {
@@ -193,6 +219,24 @@ function updateDrawerToggleState(isCollapsed) {
     toggleText.textContent = isCollapsed ? "Expand" : "Collapse";
   }
 }
+
+
+
+drawerBody.addEventListener("click", (event) => {
+  const trigger = event.target.closest(".accordion-trigger");
+  if (!trigger) return;
+
+  const panel = document.getElementById(trigger.dataset.panel);
+  const isExpanded = trigger.getAttribute("aria-expanded") === "true";
+  trigger.setAttribute("aria-expanded", String(!isExpanded));
+
+  const chevron = trigger.querySelector(".chevron");
+  if (chevron) chevron.textContent = isExpanded ? "▸" : "▾";
+
+  if (panel) {
+    panel.classList.toggle("is-collapsed", isExpanded);
+  }
+});
 
 leadRows.addEventListener("click", (event) => {
   const row = event.target.closest("tr");
