@@ -1,5 +1,6 @@
 const stages = [
   "New",
+  "Outreach Started",
   "Follow-Up",
   "Not a Fit",
   "Qualified",
