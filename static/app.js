@@ -42,27 +42,14 @@ function renderTable() {
                 .join("")}
             </select>
           </td>
-          <td><a href="#" data-id="${lead.id}">View</a></td>
-          <td>${lead.loanname}</td>
-          <td>${lead.propname}</td>
-          <td>${lead.origborrowername}</td>
+          <td>${lead.trepploanid}</td>
           <td>${lead.guarantor}</td>
-          <td>${lead.maturitydt}</td>
+          <td>${lead.loanname}</td>
           <td>${lead.defeasstatus}</td>
-          <td>${lead.defeasstatnx}</td>
-          <td>${lead.prepaycategory}</td>
-          <td>${lead.prepaydesc}</td>
-          <td>${lead.curloanbal}</td>
-          <td>${lead.secloanbal}</td>
-          <td>${lead.coupontype}</td>
-          <td>${lead.currentnoterate}</td>
-          <td>${lead.state}</td>
-          <td>${lead.city}</td>
-          <td>${lead.masterservicer}</td>
-          <td>${lead.originator}</td>
+          <td>${lead.address}</td>
           <td>${statusPill(lead.salesforceStatus)}</td>
           <td>${lead.lastSyncedAt || "-"}</td>
-          <td>${lead.salesforceId ? `<a href="#">${lead.salesforceId}</a>` : "-"}</td>
+          <td>${lead.salesforceId || "-"}</td>
         </tr>
       `
     )
@@ -84,6 +71,11 @@ function buildAccordionSections(lead) {
       : ["No activity recorded yet."];
 
   return [
+    {
+      id: "additional-information",
+      title: "Notes & Sync Options",
+      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)} <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>`]],
+    },
     {
       id: "loan-information",
       title: "Loan Information",
@@ -115,11 +107,6 @@ function buildAccordionSections(lead) {
       items: [["Property Name", lead.propname], ["Property Type Code", lead.proptypecode], ["Property Type Normalized", lead.proptypenorm], ["Property Subtype", lead.propertysubtype], ["Address", lead.address], ["City", lead.city], ["County", lead.county], ["State", lead.state], ["Zip", lead.zip], ["MSA Name", lead.msaname], ["Submarket", lead.submarket]],
     },
     { id: "servicing", title: "Servicing", items: [["Master Servicer", lead.masterservicer], ["Originator", lead.originator]] },
-    {
-      id: "additional-information",
-      title: "Additional Information",
-      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)} <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>`]],
-    },
     {
       id: "activity-history",
       title: "Activity History",
