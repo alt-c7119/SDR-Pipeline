@@ -85,6 +85,11 @@ function buildAccordionSections(lead) {
 
   return [
     {
+      id: "additional-information",
+      title: "Notes & Sync Options",
+      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)} <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>`]],
+    },
+    {
       id: "loan-information",
       title: "Loan Information",
       items: [
@@ -115,11 +120,6 @@ function buildAccordionSections(lead) {
       items: [["Property Name", lead.propname], ["Property Type Code", lead.proptypecode], ["Property Type Normalized", lead.proptypenorm], ["Property Subtype", lead.propertysubtype], ["Address", lead.address], ["City", lead.city], ["County", lead.county], ["State", lead.state], ["Zip", lead.zip], ["MSA Name", lead.msaname], ["Submarket", lead.submarket]],
     },
     { id: "servicing", title: "Servicing", items: [["Master Servicer", lead.masterservicer], ["Originator", lead.originator]] },
-    {
-      id: "additional-information",
-      title: "Additional Information",
-      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)} <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>`]],
-    },
     {
       id: "activity-history",
       title: "Activity History",
