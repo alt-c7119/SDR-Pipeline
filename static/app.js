@@ -42,27 +42,14 @@ function renderTable() {
                 .join("")}
             </select>
           </td>
-          <td><a href="#" data-id="${lead.id}">View</a></td>
-          <td>${lead.loanname}</td>
-          <td>${lead.propname}</td>
-          <td>${lead.origborrowername}</td>
+          <td>${lead.trepploanid}</td>
           <td>${lead.guarantor}</td>
-          <td>${lead.maturitydt}</td>
+          <td>${lead.loanname}</td>
           <td>${lead.defeasstatus}</td>
-          <td>${lead.defeasstatnx}</td>
-          <td>${lead.prepaycategory}</td>
-          <td>${lead.prepaydesc}</td>
-          <td>${lead.curloanbal}</td>
-          <td>${lead.secloanbal}</td>
-          <td>${lead.coupontype}</td>
-          <td>${lead.currentnoterate}</td>
-          <td>${lead.state}</td>
-          <td>${lead.city}</td>
-          <td>${lead.masterservicer}</td>
-          <td>${lead.originator}</td>
+          <td>${lead.address}</td>
           <td>${statusPill(lead.salesforceStatus)}</td>
           <td>${lead.lastSyncedAt || "-"}</td>
-          <td>${lead.salesforceId ? `<a href="#">${lead.salesforceId}</a>` : "-"}</td>
+          <td>${lead.salesforceId || "-"}</td>
         </tr>
       `
     )
