@@ -7,7 +7,7 @@
   --gray-500: #607086;
   --text: #22364d;
   --drawer-width: 340px;
-  --drawer-collapsed-width: 14px;
+  --drawer-collapsed-width: 44px;
 }
 
 * {
@@ -47,8 +47,7 @@ body {
   grid-template-columns: 220px minmax(0, 1fr) var(--drawer-width);
   min-height: calc(100vh - 56px);
   width: 100%;
-  overflow-x: visible;
-  overflow-y: visible;
+  overflow: hidden;
 }
 
 .layout.drawer-collapsed {
@@ -234,28 +233,40 @@ th {
   min-height: 70px;
 }
 
-.drawer-toggle {
-  position: absolute;
-  top: 18px;
-  left: -30px;
-  width: 30px;
-  height: 112px;
-  border: none;
-  background: var(--blue);
-  color: #fff;
-  border-radius: 8px 0 0 8px;
-  cursor: pointer;
+.drawer-header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.drawer h2 {
+  margin: 0;
+}
+
+.drawer-toggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--blue);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  z-index: 40;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .drawer-toggle:hover {
-  background: #155db5;
+  background: var(--light-blue);
+}
+
+.drawer-toggle:focus-visible,
+.accordion-trigger:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 
 .toggle-chevron {
@@ -264,21 +275,13 @@ th {
   font-weight: 700;
 }
 
-.toggle-text {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: none;
-}
 
 .drawer.collapsed {
   width: var(--drawer-collapsed-width);
   min-width: var(--drawer-collapsed-width);
   padding: 0;
   border-left: 1px solid var(--gray-200);
-  overflow: visible;
+  overflow: hidden;
 }
 
 .drawer.collapsed h2,
@@ -286,12 +289,22 @@ th {
   display: none;
 }
 
-.drawer.collapsed .toggle-chevron {
-  transform: rotate(180deg);
+.drawer.collapsed .drawer-header {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12px;
 }
 
 .drawer.collapsed .drawer-toggle {
-  left: -29px;
+  width: 30px;
+  height: 30px;
+}
+
+.drawer.collapsed .toggle-chevron {
+  transform: rotate(180deg);
 }
 
 dialog {

@@ -7,7 +7,6 @@ const syncModal = document.getElementById("syncModal");
 const leadCount = document.getElementById("leadCount");
 const drawer = document.getElementById("drawer");
 const drawerToggle = document.getElementById("drawerToggle");
-const toggleText = document.querySelector(".toggle-text");
 const layout = document.querySelector(".layout");
 
 function statusPill(status) {
@@ -212,12 +211,9 @@ function updateDrawerToggleState(isCollapsed) {
   drawerToggle.setAttribute("aria-expanded", String(!isCollapsed));
   drawerToggle.setAttribute(
     "aria-label",
-    isCollapsed ? "Expand lead details" : "Collapse lead details"
+    isCollapsed ? "Expand lead details panel" : "Collapse lead details panel"
   );
-
-  if (toggleText) {
-    toggleText.textContent = isCollapsed ? "Expand" : "Collapse";
-  }
+  drawerToggle.setAttribute("title", isCollapsed ? "Expand" : "Collapse");
 }
 
 

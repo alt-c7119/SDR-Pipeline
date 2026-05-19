@@ -104,17 +104,19 @@
       </main>
 
       <aside class="drawer" id="drawer">
-        <button
-          id="drawerToggle"
-          class="drawer-toggle"
-          aria-label="Collapse lead details"
-          aria-expanded="true"
-        >
-          <span class="toggle-chevron" aria-hidden="true">❮</span>
-          <span class="toggle-text" aria-hidden="true"></span>
-        </button>
-
-        <h2>Lead Details</h2>
+        <div class="drawer-header">
+          <h2>Lead Details</h2>
+          <button
+            id="drawerToggle"
+            class="drawer-toggle"
+            type="button"
+            aria-label="Collapse lead details panel"
+            aria-expanded="true"
+            title="Collapse"
+          >
+            <span class="toggle-chevron" aria-hidden="true">❮</span>
+          </button>
+        </div>
         <div class="drawer-body" id="drawerBody">
           <p>Select a lead row to view details.</p>
         </div>
