@@ -21,13 +21,40 @@
       <aside class="sidebar">
         <div class="sidebar-section">HOME</div>
         <div class="sidebar-section">DEFEASANCE / HEDGING PIPELINE</div>
-        <a class="sidebar-link active" href="#" data-view="campaign">Create Campaign</a>
+        <a class="sidebar-link active" href="#" data-view="campaigns">Campaigns</a>
         <a class="sidebar-link" href="#" data-view="pipeline">Pipeline Leads</a>
         <a class="sidebar-link" href="#" data-view="salesforce-sync-log">Salesforce Sync Log</a>
       </aside>
 
       <main class="content">
-        <section id="campaignView">
+        <section id="campaignsView">
+          <div class="page-header-row">
+            <div>
+              <h1>Campaigns</h1>
+              <p>Review all campaigns you have created and open the campaign creation flow.</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="openCreateCampaign">Create Campaign</button>
+          </div>
+          <div id="campaignsLoading" class="state-message">Loading campaigns...</div>
+          <div id="campaignsError" class="state-message state-error hidden">Campaigns could not be loaded.</div>
+          <div id="campaignsEmpty" class="state-message hidden">
+            No campaigns have been created yet. Click <strong>Create Campaign</strong> to create your first campaign.
+          </div>
+          <section id="campaignsTableWrap" class="table-wrap hidden">
+            <div class="table-scroll">
+              <table class="campaigns-table">
+                <thead>
+                  <tr>
+                    <th>Campaign Name</th><th>Description</th><th>Created Date</th>
+                  </tr>
+                </thead>
+                <tbody id="campaignRows"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="campaignView" class="hidden">
           <h1>Create Campaign</h1>
           <form id="campaignForm" class="campaign-form">
             <label class="field-block">

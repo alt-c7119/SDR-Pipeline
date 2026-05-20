@@ -30,6 +30,8 @@ SYNC_LOGS = [
     {"record_identifier": "489500041", "record_name": "Fort Evans Plaza Office Buildings", "object_type": "Campaign Member", "operation": "Insert", "status": "Pending", "synced_at": "2026-05-19 14:24", "triggered_by": "Nightly Sync Job", "salesforce_record_id": "", "message": "Queued for retry.", "lead_id": 3, "campaign": "Leesburg Portfolio"},
 ]
 
+CAMPAIGNS = []
+
 TREPP_FIELDS = """ua.masterloanidtrepp
 ua.guarantor
 ua.loanname
@@ -198,6 +200,7 @@ def matches_filter(lead: dict, filter_item: dict):
 def create_campaign():
     payload = request.get_json(silent=True) or {}
     campaign_name = (payload.get("campaign_name") or "").strip()
+    description = (payload.get("description") or "").strip()
     filters = payload.get("filters") or []
     uploaded_ids = payload.get("uploaded_ids") or []
 
@@ -224,7 +227,21 @@ def create_campaign():
     if not match_ids:
         return jsonify({"error": "No matching existing Trepp records were found. Adjust filters or upload corrected IDs."}), 404
 
+    CAMPAIGNS.append(
+        {
+            "id": len(CAMPAIGNS) + 1,
+            "campaign_name": campaign_name,
+            "description": description,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+    )
+
     return jsonify({"campaign_name": campaign_name, "record_count": len(match_ids), "lead_ids": sorted(match_ids)})
+
+
+@app.get("/api/campaigns")
+def get_campaigns():
+    return jsonify({"campaigns": CAMPAIGNS})
 
 
 @app.patch("/api/leads/<int:lead_id>")

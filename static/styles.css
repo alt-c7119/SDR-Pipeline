@@ -436,3 +436,19 @@ dialog {
 .state-error {
   color: #b32148;
 }
+
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-header-row p {
+  margin: 0;
+  color: #4b6077;
+}
+
+.campaigns-table {
+  min-width: 100%;
+}
