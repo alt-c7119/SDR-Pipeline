@@ -33,6 +33,73 @@ const sidebarLinks = document.querySelectorAll(".sidebar-link[data-view]");
 const syncLogRows = document.getElementById("syncLogRows");
 const campaignRows = document.getElementById("campaignRows");
 const pipelineSearchInput = document.getElementById("pipelineSearchInput");
+const pipelineFilters = document.getElementById("pipelineFilters");
+const toggleFiltersButton = document.getElementById("toggleFilters");
+const clearFiltersButton = document.getElementById("clearFilters");
+
+let filterState = {
+  stage: "",
+  defeasanceStatus: "",
+  prepayCategory: "",
+  maturityRange: "",
+  state: "",
+  masterServicer: "",
+};
+let filtersExpanded = true;
+
+const MATURITY_OPTIONS = ["", "Past Due", "0–6 Months", "6–12 Months", "12–24 Months", "24+ Months", "Unknown"];
+
+function normalizeFilterValue(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function toTitleCase(value) {
+  return String(value || "").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getReadableDefeasanceStatus(lead) {
+  const raw = lead.defeasstatus ?? lead.defeasstatnx;
+  const value = normalizeFilterValue(raw);
+  if (!value) return "Unknown";
+  if (["d", "defeased", "yes", "y", "1", "true"].includes(value)) return "Defeased";
+  if (["n", "not defeased", "no", "0", "false"].includes(value)) return "Not Defeased";
+  if (value.includes("partial") || value === "p") return "Partial";
+  return toTitleCase(raw);
+}
+
+function getMaturityDate(lead) {
+  const candidates = [lead.derivedmaturitydt, lead.maturitydt, lead.maturitymodeldt];
+  for (const item of candidates) {
+    if (!item) continue;
+    const parsed = new Date(item);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return null;
+}
+
+function getMaturityRange(lead) {
+  const maturityDate = getMaturityDate(lead);
+  if (!maturityDate) return "Unknown";
+  const now = new Date();
+  const diffMonths = (maturityDate.getFullYear() - now.getFullYear()) * 12 + (maturityDate.getMonth() - now.getMonth());
+  if (maturityDate < now) return "Past Due";
+  if (diffMonths < 6) return "0–6 Months";
+  if (diffMonths < 12) return "6–12 Months";
+  if (diffMonths < 24) return "12–24 Months";
+  return "24+ Months";
+}
+
+function getUniqueOptions(values) {
+  const map = new Map();
+  values.forEach((value) => {
+    const normalized = normalizeFilterValue(value);
+    if (!normalized) return;
+    if (!map.has(normalized)) map.set(normalized, String(value).trim());
+  });
+  return Array.from(map.values()).sort((a, b) => a.localeCompare(b));
+}
+
+
 
 function normalizeForSearch(value) {
   if (value === null || value === undefined) return "";
@@ -88,19 +155,27 @@ function getSearchScore(lead, normalizedQuery) {
   return score;
 }
 
+function getStageValue(lead) {
+  return normalizeFilterValue(lead.pipeline_stage);
+}
+
 function applySearchAndRender() {
   const normalizedQuery = normalizeForSearch(activeSearchTerm);
-  if (!normalizedQuery) {
-    filteredLeads = [...leads];
-    renderTable();
-    return;
-  }
+  const matchesSearch = (lead) => !normalizedQuery || getSearchScore(lead, normalizedQuery) !== null;
+  const matchesStage = (lead) => !filterState.stage || getStageValue(lead) === normalizeFilterValue(filterState.stage);
+  const matchesDefeasanceStatus = (lead) => !filterState.defeasanceStatus || normalizeFilterValue(getReadableDefeasanceStatus(lead)) === normalizeFilterValue(filterState.defeasanceStatus);
+  const matchesPrepayCategory = (lead) => !filterState.prepayCategory || normalizeFilterValue(lead.prepaycategory) === normalizeFilterValue(filterState.prepayCategory);
+  const matchesMaturityRange = (lead) => !filterState.maturityRange || getMaturityRange(lead) === filterState.maturityRange;
+  const matchesState = (lead) => !filterState.state || normalizeFilterValue(lead.state) === normalizeFilterValue(filterState.state);
+  const matchesMasterServicer = (lead) => !filterState.masterServicer || normalizeFilterValue(lead.masterservicer) === normalizeFilterValue(filterState.masterServicer);
 
-  filteredLeads = leads
-    .map((lead) => ({ lead, score: getSearchScore(lead, normalizedQuery) }))
-    .filter((item) => item.score !== null)
-    .sort((a, b) => b.score - a.score)
-    .map((item) => item.lead);
+  filteredLeads = leads.filter((lead) => matchesSearch(lead)
+    && matchesStage(lead)
+    && matchesDefeasanceStatus(lead)
+    && matchesPrepayCategory(lead)
+    && matchesMaturityRange(lead)
+    && matchesState(lead)
+    && matchesMasterServicer(lead));
 
   renderTable();
 }
@@ -137,7 +212,8 @@ function renderTable() {
   leadCount.textContent = `${filteredLeads.length} leads`;
 
   if (!filteredLeads.length) {
-    leadRows.innerHTML = `<tr><td colspan="10">No leads match your search.</td></tr>`;
+    const hasActiveFilters = Object.values(filterState).some(Boolean);
+    leadRows.innerHTML = `<tr><td colspan="10">${hasActiveFilters && activeSearchTerm ? "No leads match your search and selected filters." : hasActiveFilters ? "No leads match the selected filters." : "No leads match your search."}</td></tr>`;
     return;
   }
 
@@ -388,6 +464,7 @@ async function bootstrap() {
 
   leads = result.leads;
   filteredLeads = [...leads];
+  initializePipelineFilters();
   stages = result.stages;
   treppFilterFields = metadata.fields;
 
@@ -395,6 +472,78 @@ async function bootstrap() {
   addFilterRow();
   showView("campaigns");
 }
+
+
+function populateSelectOptions(selectEl, defaultLabel, options) {
+  if (!selectEl) return;
+  selectEl.innerHTML = "";
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = defaultLabel;
+  selectEl.appendChild(defaultOption);
+  options.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    selectEl.appendChild(option);
+  });
+}
+
+function initializePipelineFilters() {
+  const stageOptions = getUniqueOptions(leads.map((lead) => lead.pipeline_stage));
+  const defeasanceOptions = getUniqueOptions(leads.map((lead) => getReadableDefeasanceStatus(lead)));
+  const prepayOptions = getUniqueOptions(leads.map((lead) => lead.prepaycategory));
+  const stateOptions = getUniqueOptions(leads.map((lead) => lead.state));
+  const servicerOptions = getUniqueOptions(leads.map((lead) => lead.masterservicer));
+
+  populateSelectOptions(document.getElementById("stageFilter"), "All Stages", stageOptions);
+  populateSelectOptions(document.getElementById("defeasanceStatusFilter"), "All Defeasance Statuses", defeasanceOptions);
+  populateSelectOptions(document.getElementById("prepayCategoryFilter"), "All Prepay Categories", prepayOptions);
+  populateSelectOptions(document.getElementById("maturityRangeFilter"), "All Maturity Ranges", MATURITY_OPTIONS.filter(Boolean));
+  populateSelectOptions(document.getElementById("stateFilter"), "All States", stateOptions);
+  populateSelectOptions(document.getElementById("masterServicerFilter"), "All Master Servicers", servicerOptions);
+
+  Object.entries({
+    stage: "stageFilter",
+    defeasanceStatus: "defeasanceStatusFilter",
+    prepayCategory: "prepayCategoryFilter",
+    maturityRange: "maturityRangeFilter",
+    state: "stateFilter",
+    masterServicer: "masterServicerFilter",
+  }).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (filterState[key] && !Array.from(el.options).some((option) => option.value === filterState[key])) {
+      filterState[key] = "";
+    }
+    el.value = filterState[key] || "";
+    el.onchange = (event) => {
+      filterState[key] = event.target.value;
+      updateFilterVisibility();
+      applySearchAndRender();
+    };
+  });
+
+  updateFilterVisibility();
+}
+
+function updateFilterVisibility() {
+  const hasActiveFilters = Object.values(filterState).some(Boolean);
+  clearFiltersButton?.classList.toggle("hidden", !hasActiveFilters);
+  toggleFiltersButton.textContent = hasActiveFilters && !filtersExpanded ? "Filters (Active)" : "Filters";
+}
+
+clearFiltersButton?.addEventListener("click", () => {
+  filterState = { stage: "", defeasanceStatus: "", prepayCategory: "", maturityRange: "", state: "", masterServicer: "" };
+  initializePipelineFilters();
+  applySearchAndRender();
+});
+
+toggleFiltersButton?.addEventListener("click", () => {
+  filtersExpanded = !filtersExpanded;
+  pipelineFilters?.classList.toggle("hidden", !filtersExpanded);
+  updateFilterVisibility();
+});
 
 if (pipelineSearchInput) {
   pipelineSearchInput.addEventListener("input", (event) => {

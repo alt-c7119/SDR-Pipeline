@@ -86,28 +86,17 @@
         <h1>Defeasance &amp; Hedging Lead Qualification</h1>
         <section class="search-row">
           <input id="pipelineSearchInput" type="text" placeholder="Search loan name, borrower, guarantor, address, city, county, state, pool, or servicer" />
-          <button class="btn btn-secondary">Filters</button>
+          <button class="btn btn-secondary" id="toggleFilters" type="button">Filters</button>
         </section>
 
-        <section class="filters">
-          <select>
-            <option>Stage</option>
-          </select>
-          <select>
-            <option>Defeasance Status</option>
-          </select>
-          <select>
-            <option>Prepay Category</option>
-          </select>
-          <select>
-            <option>Maturity Range</option>
-          </select>
-          <select>
-            <option>State</option>
-          </select>
-          <select>
-            <option>Master Servicer</option>
-          </select>
+        <section class="filters" id="pipelineFilters">
+          <select id="stageFilter"></select>
+          <select id="defeasanceStatusFilter"></select>
+          <select id="prepayCategoryFilter"></select>
+          <select id="maturityRangeFilter"></select>
+          <select id="stateFilter"></select>
+          <select id="masterServicerFilter"></select>
+          <button type="button" class="btn btn-secondary hidden" id="clearFilters">Clear Filters</button>
         </section>
 
         <section class="table-wrap">
