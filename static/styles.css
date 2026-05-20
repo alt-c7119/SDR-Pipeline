@@ -471,7 +471,14 @@ dialog {
   border-left: 1px solid var(--gray-200);
   padding: 16px;
   background: #fbfcfe;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#campaignDrawerBody {
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .record-list {
