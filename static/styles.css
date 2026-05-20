@@ -465,21 +465,6 @@ dialog {
   background: #f5f9ff;
 }
 
-.campaign-records-drawer {
-  width: 360px;
-  min-width: 360px;
-  border-left: 1px solid var(--gray-200);
-  padding: 16px;
-  background: #fbfcfe;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-#campaignDrawerBody {
-  overflow-y: auto;
-  min-height: 0;
-}
 
 .record-list {
   display: grid;
