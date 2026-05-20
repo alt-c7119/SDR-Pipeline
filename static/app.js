@@ -40,7 +40,14 @@ async function api(path, options = {}) {
     ...options,
   });
 
-  return response.json();
+  const data = await response.json();
+  if (!response.ok) {
+    const error = new Error(data?.error || "Request failed");
+    error.payload = data;
+    throw error;
+  }
+
+  return data;
 }
 
 function renderTable() {
@@ -330,6 +337,8 @@ function renderCampaigns() {
 function closeCampaignDrawer() {
   campaignRecordsDrawer.classList.add("hidden");
   selectedCampaignId = null;
+  campaignDrawerTitle.textContent = "Campaign Records";
+  campaignDrawerBody.innerHTML = "<p>Select a campaign to view records.</p>";
 }
 
 function renderCampaignRecords(records) {
@@ -534,13 +543,14 @@ campaignForm?.addEventListener("submit", async (event) => {
     return;
   }
 
-  const result = await api("/api/campaigns", {
-    method: "POST",
-    body: JSON.stringify({ campaign_name: name, description, filters, uploaded_ids }),
-  });
-
-  if (result.error) {
-    campaignMessage.textContent = result.error;
+  let result;
+  try {
+    result = await api("/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ campaign_name: name, description, filters, uploaded_ids }),
+    });
+  } catch (error) {
+    campaignMessage.textContent = error?.payload?.error || "Campaign could not be created.";
     return;
   }
 
