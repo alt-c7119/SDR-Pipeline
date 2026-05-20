@@ -24,6 +24,119 @@ LEADS = [
     {"id": 10, "pipeline_stage": "New", "notes": "", "trepploanid": "394000064", "guarantor": "1700 LLC", "loanname": "Belle Chasse Self Storage", "defeasstatus": "F", "address": "9526 & 9541 Louisiana Highway 23, Belle Chasse, LA 70037", "salesforceStatus": "Not Synced", "lastSyncedAt": "", "salesforceId": ""},
 ]
 
+TREPP_FIELDS = """ua.masterloanidtrepp
+ua.guarantor
+ua.loanname
+ua.defeasstatus
+complete_address
+ua.origborrowername
+ua.bloombergname
+ua.maturitydt
+ua.originationdt
+ua.curcpn
+ua.currentnoterate
+ua.secloanbal
+ua.curloanbal
+ua.poolnum
+ua.masterservicer
+ua.originator
+ua.prepaydesc
+ua.coupontype
+ua.affiliatedsponsors
+ua.loanpurpose
+ua.defeasstatnx
+ua.prepaycategory
+ua.propname
+ua.proptypecode
+ua.proptypenorm
+ua.propertysubtype
+ua.address
+ua.city
+ua.county
+ua.state
+ua.zip
+ua.msaname
+ua.submarket
+ua.numprops
+ua.ismultiproperty
+ua.notename
+ua.derivedloanstatus
+ua.watchliststatus
+ua.loanpurposeraw
+ua.maturitymodeldt
+ua.modelfirstopendt
+ua.derivedmaturitydt
+ua.loanprepayenddt
+ua.msa
+ua.amortterm
+ua.curamorttype
+ua.curmonlock
+ua.curmonpp
+ua.curmonymc
+ua.daycountmethod
+ua.ioperiods
+ua.origterm
+ua.remterm
+ua.defeasableremaintofirst
+ua.dlqtot12mons
+ua.impliedcapratesecnoi
+ua.impliedcapratesecncf
+ua.revenues
+ua.priorrevenue
+ua.prior2revenue
+ua.uweffectivegrossincome
+ua.expenses
+ua.prioropexpense
+ua.prior2opexpense
+ua.uwtotalopexpense
+ua.secnoidscr
+ua.curdscr
+ua.noidscr
+ua.secncfdscr
+ua.curnoidebtyield
+ua.secdebtyieldnoinew
+ua.curncfdebtyield
+ua.secdebtyieldncfnew
+ua.estdefeasance
+ua.ncfdscr
+ua.dscrasof
+ua.noiasof
+ua.mrnoi
+ua.noi
+ua.priornoi
+ua.prior2noi
+ua.uwnoi
+ua.ncfasof
+ua.mrncf
+ua.ncf
+ua.priorncf
+ua.prior2ncf
+ua.uwncf
+ua.curltv
+ua.secltv
+ua.occrate
+ua.priorphyoccupancy
+ua.prior2phyoccupancy
+ua.secoccupancyrate
+ua.mrphysicaloccupancy
+ua.physicaloccupancypct
+ua.realestatetaxes
+ua.curnetcpn
+ua.benchmarktsyindex
+ua.benchmarktsyrate
+ua.estimatedspreadtotsy
+ua.benchmarkswapindex
+ua.benchmarkswaprate
+ua.estimatedspreadtoswap
+ua.estimatedswapratepct
+ua.originterestrate
+ua.secltvasis
+ua.secncfdscrasis
+ua.datasource""".splitlines()
+
+DATE_FIELD_HINTS = ("dt", "asof")
+NUMERIC_FIELD_HINTS = ("rate", "bal", "term", "dscr", "ltv", "noi", "ncf", "yield", "revenue", "expense", "num", "taxes", "spread", "occupancy", "cpn")
+
 
 def lead_by_id(lead_id: int):
     return next((lead for lead in LEADS if lead["id"] == lead_id), None)
@@ -37,6 +150,75 @@ def index():
 @app.get("/api/leads")
 def get_leads():
     return jsonify({"leads": LEADS, "stages": STAGES})
+
+
+@app.get("/api/campaign-metadata")
+def campaign_metadata():
+    fields = []
+    for field in TREPP_FIELDS:
+        if field == "ua.ismultiproperty":
+            field_type = "boolean"
+        elif any(hint in field for hint in DATE_FIELD_HINTS):
+            field_type = "date"
+        elif any(hint in field for hint in NUMERIC_FIELD_HINTS):
+            field_type = "number"
+        else:
+            field_type = "text"
+        fields.append({"key": field, "type": field_type})
+    return jsonify({"fields": fields})
+
+
+def matches_filter(lead: dict, filter_item: dict):
+    raw_field = filter_item.get("field", "")
+    field = raw_field.replace("ua.", "")
+    operator = filter_item.get("operator", "equals")
+    filter_value = str(filter_item.get("value", "")).strip()
+    lead_value = str(lead.get(field, "")).strip()
+    if not filter_value:
+        return True
+    if operator == "contains":
+        return filter_value.lower() in lead_value.lower()
+    if operator in ("gt", "lt"):
+        try:
+            left = float(lead_value)
+            right = float(filter_value)
+            return left > right if operator == "gt" else left < right
+        except ValueError:
+            return False
+    return lead_value.lower() == filter_value.lower()
+
+
+@app.post("/api/campaigns")
+def create_campaign():
+    payload = request.get_json(silent=True) or {}
+    campaign_name = (payload.get("campaign_name") or "").strip()
+    filters = payload.get("filters") or []
+    uploaded_ids = payload.get("uploaded_ids") or []
+
+    if not campaign_name:
+        return jsonify({"error": "Campaign name is required."}), 400
+    if not filters and not uploaded_ids:
+        return jsonify({"error": "Apply filters or upload Trepp Master Loan IDs before creating a campaign."}), 400
+
+    filter_matches = []
+    if filters:
+        filter_matches = [lead for lead in LEADS if all(matches_filter(lead, item) for item in filters)]
+    id_matches = []
+    if uploaded_ids:
+        normalized = {str(value).strip() for value in uploaded_ids if str(value).strip()}
+        if not normalized:
+            return jsonify({"error": "Upload must include usable Trepp Master Loan IDs and is used only to match existing records."}), 400
+        id_matches = [lead for lead in LEADS if lead.get("trepploanid") in normalized]
+
+    if filters and uploaded_ids:
+        match_ids = {lead["id"] for lead in filter_matches} | {lead["id"] for lead in id_matches}
+    else:
+        match_ids = {lead["id"] for lead in (filter_matches or id_matches)}
+
+    if not match_ids:
+        return jsonify({"error": "No matching existing Trepp records were found. Adjust filters or upload corrected IDs."}), 404
+
+    return jsonify({"campaign_name": campaign_name, "record_count": len(match_ids), "lead_ids": sorted(match_ids)})
 
 
 @app.patch("/api/leads/<int:lead_id>")

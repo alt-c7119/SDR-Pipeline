@@ -386,3 +386,44 @@ dialog {
 .activity-log li {
   margin-bottom: 6px;
 }
+
+.hidden {
+  display: none;
+}
+
+.campaign-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 420px;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.method-card {
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.form-message {
+  min-height: 18px;
+  color: #b32148;
+}
