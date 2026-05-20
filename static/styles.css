@@ -427,3 +427,12 @@ dialog {
   min-height: 18px;
   color: #b32148;
 }
+
+.state-message {
+  margin: 10px 0;
+  color: #4b6077;
+}
+
+.state-error {
+  color: #b32148;
+}

@@ -23,7 +23,7 @@
         <div class="sidebar-section">DEFEASANCE / HEDGING PIPELINE</div>
         <a class="sidebar-link active" href="#" data-view="campaign">Create Campaign</a>
         <a class="sidebar-link" href="#" data-view="pipeline">Pipeline Leads</a>
-        <a class="sidebar-link" href="#">Salesforce Sync Log</a>
+        <a class="sidebar-link" href="#" data-view="salesforce-sync-log">Salesforce Sync Log</a>
       </aside>
 
       <main class="content">
@@ -111,7 +111,27 @@
             <small>Only leads with Stage = "Qualified" will be synced.</small>
           </div>
         </section>
-      </section>
+        </section>
+
+        <section id="salesforceSyncLogView" class="hidden">
+          <h1>Salesforce Sync Log</h1>
+          <p>Review Salesforce synchronization activity for SDR records.</p>
+          <div id="syncLogLoading" class="state-message">Loading Salesforce sync activity...</div>
+          <div id="syncLogError" class="state-message state-error hidden">Salesforce sync log could not be loaded.</div>
+          <div id="syncLogEmpty" class="state-message hidden">No Salesforce sync activity is available yet.</div>
+          <section id="syncLogTableWrap" class="table-wrap hidden">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Record Identifier</th><th>Record Name</th><th>Object Type</th><th>Operation</th><th>Status</th><th>Synced At</th><th>Triggered By</th><th>Salesforce Record ID</th><th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="syncLogRows"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
       </main>
 
       <aside class="drawer" id="drawer">
