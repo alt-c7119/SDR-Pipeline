@@ -50,6 +50,10 @@ body {
   overflow: hidden;
 }
 
+.layout.lead-drawer-hidden {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
 .layout.drawer-collapsed {
   --drawer-width: var(--drawer-collapsed-width);
 }
@@ -451,4 +455,42 @@ dialog {
 
 .campaigns-table {
   min-width: 100%;
+}
+
+.campaign-row {
+  cursor: pointer;
+}
+
+.campaign-row:hover {
+  background: #f5f9ff;
+}
+
+.campaign-records-drawer {
+  width: 360px;
+  min-width: 360px;
+  border-left: 1px solid var(--gray-200);
+  padding: 16px;
+  background: #fbfcfe;
+  overflow: auto;
+}
+
+.record-list {
+  display: grid;
+  gap: 10px;
+}
+
+.record-card {
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  padding: 10px;
+  background: #fff;
+}
+
+.record-card h4 {
+  margin: 0 0 6px;
+  color: #173a66;
+}
+
+.record-meta {
+  margin: 2px 0;
 }
