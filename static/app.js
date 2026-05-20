@@ -13,6 +13,13 @@ const filtersContainer = document.getElementById("filtersContainer");
 const campaignForm = document.getElementById("campaignForm");
 const campaignMessage = document.getElementById("campaignMessage");
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-view]");
+const syncLogRows = document.getElementById("syncLogRows");
+
+function syncStatusPill(status) {
+  if (status === "Success") return '<span class="pill pill-qualified">SUCCESS</span>';
+  if (status === "Failed") return '<span class="pill pill-error">FAILED</span>';
+  return '<span class="pill pill-sync">PENDING</span>';
+}
 
 function statusPill(status) {
   if (status === "Synced") return '<span class="pill pill-qualified">SYNCED</span>';
@@ -285,10 +292,46 @@ async function bootstrap() {
   addFilterRow();
 }
 
+function setSyncLogState(state) {
+  document.getElementById("syncLogLoading").classList.toggle("hidden", state !== "loading");
+  document.getElementById("syncLogError").classList.toggle("hidden", state !== "error");
+  document.getElementById("syncLogEmpty").classList.toggle("hidden", state !== "empty");
+  document.getElementById("syncLogTableWrap").classList.toggle("hidden", state !== "ready");
+}
+
+function renderSyncLog(entries) {
+  syncLogRows.innerHTML = entries
+    .map(
+      (entry) => `<tr>
+      <td>${entry.record_identifier || "-"}</td><td>${entry.record_name || "-"}</td><td>${entry.object_type || "-"}</td><td>${entry.operation || "-"}</td>
+      <td>${syncStatusPill(entry.status)}</td><td>${entry.synced_at || "-"}</td><td>${entry.triggered_by || "-"}</td><td>${entry.salesforce_record_id || "-"}</td>
+      <td>${entry.message || "-"} (Lead ID: ${entry.lead_id || "-"}, Campaign: ${entry.campaign || "-"})</td></tr>`
+    )
+    .join("");
+}
+
+async function loadSyncLog() {
+  setSyncLogState("loading");
+  try {
+    const result = await api("/api/salesforce-sync-log");
+    const entries = Array.isArray(result.entries) ? result.entries : [];
+    if (!entries.length) {
+      setSyncLogState("empty");
+      return;
+    }
+    renderSyncLog(entries);
+    setSyncLogState("ready");
+  } catch {
+    setSyncLogState("error");
+  }
+}
+
 function showView(viewName) {
   document.getElementById("campaignView").classList.toggle("hidden", viewName !== "campaign");
   document.getElementById("pipelineView").classList.toggle("hidden", viewName !== "pipeline");
+  document.getElementById("salesforceSyncLogView").classList.toggle("hidden", viewName !== "salesforce-sync-log");
   sidebarLinks.forEach((link) => link.classList.toggle("active", link.dataset.view === viewName));
+  if (viewName === "salesforce-sync-log") loadSyncLog();
 }
 
 function inputTypeForField(type) {

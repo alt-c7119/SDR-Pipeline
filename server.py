@@ -24,6 +24,12 @@ LEADS = [
     {"id": 10, "pipeline_stage": "New", "notes": "", "trepploanid": "394000064", "guarantor": "1700 LLC", "loanname": "Belle Chasse Self Storage", "defeasstatus": "F", "address": "9526 & 9541 Louisiana Highway 23, Belle Chasse, LA 70037", "salesforceStatus": "Not Synced", "lastSyncedAt": "", "salesforceId": ""},
 ]
 
+SYNC_LOGS = [
+    {"record_identifier": "468500055", "record_name": "Enterprise Center - VA", "object_type": "Lead", "operation": "Upsert", "status": "Success", "synced_at": "2026-05-19 14:22", "triggered_by": "Qualified Lead Sync", "salesforce_record_id": "00Q8b0000AAA101", "message": "Lead synced successfully.", "lead_id": 1, "campaign": "Mid-Atlantic Office"},
+    {"record_identifier": "474300049", "record_name": "Wells Fargo at Stonehall Bethesda", "object_type": "Lead", "operation": "Update", "status": "Failed", "synced_at": "2026-05-19 14:23", "triggered_by": "Qualified Lead Sync", "salesforce_record_id": "00Q8b0000AAA102", "message": "Validation error: missing state.", "lead_id": 2, "campaign": "Mid-Atlantic Office"},
+    {"record_identifier": "489500041", "record_name": "Fort Evans Plaza Office Buildings", "object_type": "Campaign Member", "operation": "Insert", "status": "Pending", "synced_at": "2026-05-19 14:24", "triggered_by": "Nightly Sync Job", "salesforce_record_id": "", "message": "Queued for retry.", "lead_id": 3, "campaign": "Leesburg Portfolio"},
+]
+
 TREPP_FIELDS = """ua.masterloanidtrepp
 ua.guarantor
 ua.loanname
@@ -245,6 +251,11 @@ def sync_qualified():
         if not lead["salesforceId"]:
             lead["salesforceId"] = f"SF-{100000 + lead['id']}"
     return jsonify({"synced_count": len(qualified), "leads": LEADS})
+
+
+@app.get("/api/salesforce-sync-log")
+def salesforce_sync_log():
+    return jsonify({"entries": SYNC_LOGS})
 
 
 if __name__ == "__main__":
