@@ -445,6 +445,7 @@ campaignForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   campaignMessage.textContent = "";
   const name = document.getElementById("campaignName").value.trim();
+  const description = document.getElementById("campaignDescription").value.trim();
   if (!name) {
     campaignMessage.textContent = "Campaign name is required.";
     return;
@@ -481,7 +482,7 @@ campaignForm?.addEventListener("submit", async (event) => {
 
   const result = await api("/api/campaigns", {
     method: "POST",
-    body: JSON.stringify({ campaign_name: name, filters, uploaded_ids }),
+    body: JSON.stringify({ campaign_name: name, description, filters, uploaded_ids }),
   });
 
   if (result.error) {
