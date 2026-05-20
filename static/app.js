@@ -2,6 +2,7 @@ let stages = [];
 let leads = [];
 let treppFilterFields = [];
 let campaigns = [];
+let selectedCampaignId = null;
 
 const leadRows = document.getElementById("leadRows");
 const drawerBody = document.getElementById("drawerBody");
@@ -16,6 +17,10 @@ const campaignMessage = document.getElementById("campaignMessage");
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-view]");
 const syncLogRows = document.getElementById("syncLogRows");
 const campaignRows = document.getElementById("campaignRows");
+const campaignRecordsDrawer = document.getElementById("campaignRecordsDrawer");
+const campaignDrawerBody = document.getElementById("campaignDrawerBody");
+const campaignDrawerTitle = document.getElementById("campaignDrawerTitle");
+const campaignDrawerClose = document.getElementById("campaignDrawerClose");
 
 function syncStatusPill(status) {
   if (status === "Success") return '<span class="pill pill-qualified">SUCCESS</span>';
@@ -292,8 +297,9 @@ async function bootstrap() {
 
   renderTable();
   addFilterRow();
-  await loadCampaigns();
+  showView("campaigns");
 }
+
 
 function setCampaignsState(state) {
   document.getElementById("campaignsLoading").classList.toggle("hidden", state !== "loading");
@@ -312,13 +318,57 @@ function formatCampaignDate(createdAt) {
 function renderCampaigns() {
   campaignRows.innerHTML = campaigns
     .map(
-      (campaign) => `<tr>
+      (campaign) => `<tr class="campaign-row" data-campaign-id="${campaign.id}" data-campaign-name="${campaign.campaign_name}">
         <td>${campaign.campaign_name}</td>
         <td>${campaign.description || "-"}</td>
         <td>${formatCampaignDate(campaign.created_at)}</td>
       </tr>`
     )
     .join("");
+}
+
+function closeCampaignDrawer() {
+  campaignRecordsDrawer.classList.add("hidden");
+  selectedCampaignId = null;
+}
+
+function renderCampaignRecords(records) {
+  campaignDrawerBody.innerHTML = `<div class="record-list">${records
+    .map(
+      (record) => `<article class="record-card">
+      <h4>${formatValue(record.loanname)}</h4>
+      <p class="record-meta"><strong>Trepp Loan ID:</strong> ${formatValue(record.trepploanid)}</p>
+      <p class="record-meta"><strong>Guarantor:</strong> ${formatValue(record.guarantor)}</p>
+      <p class="record-meta"><strong>Property Name:</strong> ${formatValue(record.property_name)}</p>
+      <p class="record-meta"><strong>Address:</strong> ${formatValue(record.address)}</p>
+      <p class="record-meta"><strong>Current Loan Balance:</strong> ${formatValue(record.current_loan_balance)}</p>
+    </article>`
+    )
+    .join("")}</div>`;
+}
+
+async function openCampaignDrawer(campaignId) {
+  const campaign = campaigns.find((item) => item.id === campaignId);
+  if (!campaign) return;
+
+  selectedCampaignId = campaignId;
+  campaignDrawerTitle.textContent = `Campaign Records: ${campaign.campaign_name}`;
+  campaignRecordsDrawer.classList.remove("hidden");
+  campaignDrawerBody.innerHTML = '<p class="state-message">Loading campaign records...</p>';
+
+  try {
+    const result = await api(`/api/campaigns/${campaignId}/records`);
+    if (selectedCampaignId !== campaignId) return;
+    const records = Array.isArray(result.records) ? result.records : [];
+    if (!records.length) {
+      campaignDrawerBody.innerHTML = '<p class="state-message">This campaign has no records.</p>';
+      return;
+    }
+    renderCampaignRecords(records);
+  } catch {
+    if (selectedCampaignId !== campaignId) return;
+    campaignDrawerBody.innerHTML = '<p class="state-message state-error">Campaign records could not be loaded.</p>';
+  }
 }
 
 async function loadCampaigns() {
@@ -377,6 +427,10 @@ function showView(viewName) {
   document.getElementById("pipelineView").classList.toggle("hidden", viewName !== "pipeline");
   document.getElementById("salesforceSyncLogView").classList.toggle("hidden", viewName !== "salesforce-sync-log");
   sidebarLinks.forEach((link) => link.classList.toggle("active", link.dataset.view === viewName));
+  const showLeadDrawer = viewName === "pipeline";
+  drawer.classList.toggle("hidden", !showLeadDrawer);
+  layout.classList.toggle("lead-drawer-hidden", !showLeadDrawer);
+  if (viewName !== "campaigns") closeCampaignDrawer();
   if (viewName === "salesforce-sync-log") loadSyncLog();
   if (viewName === "campaigns") loadCampaigns();
 }
@@ -495,5 +549,13 @@ campaignForm?.addEventListener("submit", async (event) => {
   document.getElementById("loanIdFile").value = "";
   await loadCampaigns();
 });
+
+campaignRows?.addEventListener("click", (event) => {
+  const row = event.target.closest(".campaign-row");
+  if (!row) return;
+  openCampaignDrawer(Number(row.dataset.campaignId));
+});
+
+campaignDrawerClose?.addEventListener("click", closeCampaignDrawer);
 
 bootstrap();
