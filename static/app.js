@@ -47,8 +47,8 @@ function renderTable() {
                 .join("")}
             </select>
           </td>
-          <td>${lead.trepploanid}</td>
           <td>${lead.guarantor}</td>
+          <td>${lead.trepploanid}</td>
           <td>${lead.loanname}</td>
           <td>${lead.defeasstatus}</td>
           <td>${lead.address}</td>
