@@ -492,7 +492,6 @@ campaignForm?.addEventListener("submit", async (event) => {
 
   campaignMessage.textContent = `Campaign "${result.campaign_name}" created successfully with ${result.record_count} records.`;
   document.getElementById("campaignName").value = "";
-  document.getElementById("campaignDescription").value = "";
   document.getElementById("loanIdFile").value = "";
   await loadCampaigns();
 });
