@@ -31,6 +31,7 @@ SYNC_LOGS = [
 ]
 
 CAMPAIGNS = []
+CAMPAIGN_RECORDS = {}
 
 TREPP_FIELDS = """ua.masterloanidtrepp
 ua.guarantor
@@ -235,6 +236,8 @@ def create_campaign():
             "created_at": datetime.utcnow().isoformat(),
         }
     )
+    campaign_id = CAMPAIGNS[-1]["id"]
+    CAMPAIGN_RECORDS[campaign_id] = sorted(match_ids)
 
     return jsonify({"campaign_name": campaign_name, "record_count": len(match_ids), "lead_ids": sorted(match_ids)})
 
@@ -242,6 +245,33 @@ def create_campaign():
 @app.get("/api/campaigns")
 def get_campaigns():
     return jsonify({"campaigns": CAMPAIGNS})
+
+
+@app.get("/api/campaigns/<int:campaign_id>/records")
+def campaign_records(campaign_id: int):
+    campaign = next((item for item in CAMPAIGNS if item["id"] == campaign_id), None)
+    if campaign is None:
+        return jsonify({"error": "Campaign not found."}), 404
+
+    lead_ids = CAMPAIGN_RECORDS.get(campaign_id, [])
+    records = []
+    for lead_id in lead_ids:
+        lead = lead_by_id(lead_id)
+        if lead is None:
+            continue
+        records.append(
+            {
+                "id": lead["id"],
+                "trepploanid": lead.get("trepploanid"),
+                "loanname": lead.get("loanname"),
+                "guarantor": lead.get("guarantor"),
+                "property_name": lead.get("propname"),
+                "address": lead.get("address"),
+                "current_loan_balance": lead.get("curloanbal"),
+            }
+        )
+
+    return jsonify({"campaign": campaign, "records": records})
 
 
 @app.patch("/api/leads/<int:lead_id>")
