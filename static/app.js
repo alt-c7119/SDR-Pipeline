@@ -1,7 +1,23 @@
 let stages = [];
 let leads = [];
+let filteredLeads = [];
 let treppFilterFields = [];
 let campaigns = [];
+let activeSearchTerm = "";
+let searchDebounceTimer = null;
+
+const SEARCH_DEBOUNCE_MS = 200;
+const SEARCHABLE_LEAD_FIELDS = [
+  "masterloanidtrepp", "guarantor", "loanname", "defeasstatus", "complete_address", "origborrowername",
+  "bloombergname", "poolnum", "masterservicer", "originator", "prepaydesc", "coupontype",
+  "affiliatedsponsors", "loanpurpose", "defeasstatnx", "prepaycategory", "propname", "proptypecode",
+  "proptypenorm", "propertysubtype", "address", "city", "county", "state", "zip", "msaname",
+  "submarket", "notename", "derivedloanstatus", "watchliststatus", "loanpurposeraw", "msa", "datasource",
+];
+const HIGH_PRIORITY_FIELDS = new Set([
+  "loanname", "guarantor", "origborrowername", "propname", "complete_address", "address", "city",
+  "county", "state", "zip", "masterloanidtrepp", "poolnum",
+]);
 
 const leadRows = document.getElementById("leadRows");
 const drawerBody = document.getElementById("drawerBody");
@@ -16,6 +32,78 @@ const campaignMessage = document.getElementById("campaignMessage");
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-view]");
 const syncLogRows = document.getElementById("syncLogRows");
 const campaignRows = document.getElementById("campaignRows");
+const pipelineSearchInput = document.getElementById("pipelineSearchInput");
+
+function normalizeForSearch(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function levenshteinDistance(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const prev = Array.from({ length: b.length + 1 }, (_, idx) => idx);
+  for (let i = 1; i <= a.length; i += 1) {
+    let diagonal = prev[0];
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const temp = prev[j];
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diagonal + cost);
+      diagonal = temp;
+    }
+  }
+  return prev[b.length];
+}
+
+function evaluateFieldMatch(query, value) {
+  if (!value) return null;
+  if (value === query) return 100;
+  if (value.startsWith(query)) return 80;
+  if (value.includes(query)) return 60;
+
+  const tokens = value.split(" ");
+  const nearToken = tokens.some((token) => {
+    if (!token) return false;
+    if (Math.abs(token.length - query.length) > 2) return false;
+    return levenshteinDistance(token, query) <= 1;
+  });
+  return nearToken ? 40 : null;
+}
+
+function getSearchScore(lead, normalizedQuery) {
+  let score = null;
+  for (const field of SEARCHABLE_LEAD_FIELDS) {
+    const normalizedValue = normalizeForSearch(lead[field]);
+    const fieldScore = evaluateFieldMatch(normalizedQuery, normalizedValue);
+    if (fieldScore === null) continue;
+    const weighted = fieldScore + (HIGH_PRIORITY_FIELDS.has(field) ? 10 : 0);
+    score = score === null ? weighted : Math.max(score, weighted);
+  }
+  return score;
+}
+
+function applySearchAndRender() {
+  const normalizedQuery = normalizeForSearch(activeSearchTerm);
+  if (!normalizedQuery) {
+    filteredLeads = [...leads];
+    renderTable();
+    return;
+  }
+
+  filteredLeads = leads
+    .map((lead) => ({ lead, score: getSearchScore(lead, normalizedQuery) }))
+    .filter((item) => item.score !== null)
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.lead);
+
+  renderTable();
+}
 
 function syncStatusPill(status) {
   if (status === "Success") return '<span class="pill pill-qualified">SUCCESS</span>';
@@ -46,9 +134,14 @@ async function api(path, options = {}) {
 }
 
 function renderTable() {
-  leadCount.textContent = `${leads.length} leads`;
+  leadCount.textContent = `${filteredLeads.length} leads`;
 
-  leadRows.innerHTML = leads
+  if (!filteredLeads.length) {
+    leadRows.innerHTML = `<tr><td colspan="10">No leads match your search.</td></tr>`;
+    return;
+  }
+
+  leadRows.innerHTML = filteredLeads
     .map(
       (lead) => `
         <tr data-id="${lead.id}">
@@ -208,7 +301,7 @@ async function syncQualified() {
     const result = await api("/api/sync-qualified", { method: "POST" });
 
     leads = result.leads;
-    renderTable();
+    applySearchAndRender();
     syncModal.close();
   };
 }
@@ -246,7 +339,7 @@ leadRows.addEventListener("click", (event) => {
   const row = event.target.closest("tr");
   if (!row) return;
 
-  const lead = leads.find((item) => item.id === Number(row.dataset.id));
+  const lead = filteredLeads.find((item) => item.id === Number(row.dataset.id));
   if (lead) renderDrawer(lead);
 });
 
@@ -294,12 +387,23 @@ async function bootstrap() {
   const metadata = await api("/api/campaign-metadata");
 
   leads = result.leads;
+  filteredLeads = [...leads];
   stages = result.stages;
   treppFilterFields = metadata.fields;
 
   renderTable();
   addFilterRow();
   showView("campaigns");
+}
+
+if (pipelineSearchInput) {
+  pipelineSearchInput.addEventListener("input", (event) => {
+    activeSearchTerm = event.target.value || "";
+    if (searchDebounceTimer) {
+      window.clearTimeout(searchDebounceTimer);
+    }
+    searchDebounceTimer = window.setTimeout(applySearchAndRender, SEARCH_DEBOUNCE_MS);
+  });
 }
 
 
