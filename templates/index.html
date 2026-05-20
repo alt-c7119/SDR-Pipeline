@@ -21,15 +21,38 @@
       <aside class="sidebar">
         <div class="sidebar-section">HOME</div>
         <div class="sidebar-section">DEFEASANCE / HEDGING PIPELINE</div>
-        <a class="sidebar-link active" href="#">New Leads</a>
-        <a class="sidebar-link" href="#">In Progress</a>
-        <a class="sidebar-link" href="#">Qualified Leads</a>
+        <a class="sidebar-link active" href="#" data-view="campaign">Create Campaign</a>
+        <a class="sidebar-link" href="#" data-view="pipeline">Pipeline Leads</a>
         <a class="sidebar-link" href="#">Salesforce Sync Log</a>
       </aside>
 
       <main class="content">
-        <h1>Defeasance &amp; Hedging Lead Qualification</h1>
+        <section id="campaignView">
+          <h1>Create Campaign</h1>
+          <form id="campaignForm" class="campaign-form">
+            <label class="field-block">
+              Campaign Name *
+              <input type="text" id="campaignName" placeholder="Enter campaign name" required />
+            </label>
+            <p id="campaignMessage" class="form-message"></p>
+            <div class="method-grid">
+              <section class="method-card">
+                <h3>Method 1: Filter Trepp Data</h3>
+                <div id="filtersContainer"></div>
+                <button type="button" class="btn btn-secondary" id="addFilter">Add Filter</button>
+              </section>
+              <section class="method-card">
+                <h3>Method 2: Upload Trepp Master Loan IDs</h3>
+                <input type="file" id="loanIdFile" accept=".txt,.csv" />
+                <small>Upload .txt or .csv file with Trepp Master Loan IDs (existing records only).</small>
+              </section>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Campaign</button>
+          </form>
+        </section>
 
+        <section id="pipelineView" class="hidden">
+        <h1>Defeasance &amp; Hedging Lead Qualification</h1>
         <section class="search-row">
           <input type="text" placeholder="Search loans / borrower / property / pool" />
           <button class="btn btn-secondary">Filters</button>
@@ -88,6 +111,7 @@
             <small>Only leads with Stage = "Qualified" will be synced.</small>
           </div>
         </section>
+      </section>
       </main>
 
       <aside class="drawer" id="drawer">

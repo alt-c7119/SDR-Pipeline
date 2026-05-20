@@ -1,5 +1,6 @@
 let stages = [];
 let leads = [];
+let treppFilterFields = [];
 
 const leadRows = document.getElementById("leadRows");
 const drawerBody = document.getElementById("drawerBody");
@@ -8,6 +9,10 @@ const leadCount = document.getElementById("leadCount");
 const drawer = document.getElementById("drawer");
 const drawerToggle = document.getElementById("drawerToggle");
 const layout = document.querySelector(".layout");
+const filtersContainer = document.getElementById("filtersContainer");
+const campaignForm = document.getElementById("campaignForm");
+const campaignMessage = document.getElementById("campaignMessage");
+const sidebarLinks = document.querySelectorAll(".sidebar-link[data-view]");
 
 function statusPill(status) {
   if (status === "Synced") return '<span class="pill pill-qualified">SYNCED</span>';
@@ -270,11 +275,129 @@ if (drawer && drawerToggle) {
 
 async function bootstrap() {
   const result = await api("/api/leads");
+  const metadata = await api("/api/campaign-metadata");
 
   leads = result.leads;
   stages = result.stages;
+  treppFilterFields = metadata.fields;
 
   renderTable();
+  addFilterRow();
 }
+
+function showView(viewName) {
+  document.getElementById("campaignView").classList.toggle("hidden", viewName !== "campaign");
+  document.getElementById("pipelineView").classList.toggle("hidden", viewName !== "pipeline");
+  sidebarLinks.forEach((link) => link.classList.toggle("active", link.dataset.view === viewName));
+}
+
+function inputTypeForField(type) {
+  if (type === "number") return "number";
+  if (type === "date") return "date";
+  return "text";
+}
+
+function addFilterRow() {
+  if (!filtersContainer) return;
+  const wrapper = document.createElement("div");
+  wrapper.className = "filter-row";
+
+  const fieldSelect = document.createElement("select");
+  treppFilterFields.forEach((field) => {
+    const option = document.createElement("option");
+    option.value = field.key;
+    option.textContent = field.key;
+    option.dataset.type = field.type;
+    fieldSelect.appendChild(option);
+  });
+
+  const operatorSelect = document.createElement("select");
+  ["equals", "contains", "gt", "lt"].forEach((op) => {
+    const option = document.createElement("option");
+    option.value = op;
+    option.textContent = op;
+    operatorSelect.appendChild(option);
+  });
+
+  const valueInput = document.createElement("input");
+  valueInput.placeholder = "Value";
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "btn btn-secondary";
+  removeButton.textContent = "Remove";
+  removeButton.onclick = () => wrapper.remove();
+
+  const applyType = () => {
+    const selected = fieldSelect.options[fieldSelect.selectedIndex];
+    const fieldType = selected ? selected.dataset.type : "text";
+    valueInput.type = inputTypeForField(fieldType);
+  };
+  fieldSelect.onchange = applyType;
+  applyType();
+
+  wrapper.append(fieldSelect, operatorSelect, valueInput, removeButton);
+  filtersContainer.appendChild(wrapper);
+}
+
+document.getElementById("addFilter")?.addEventListener("click", addFilterRow);
+
+sidebarLinks.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    showView(link.dataset.view);
+  });
+});
+
+campaignForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  campaignMessage.textContent = "";
+  const name = document.getElementById("campaignName").value.trim();
+  if (!name) {
+    campaignMessage.textContent = "Campaign name is required.";
+    return;
+  }
+
+  const filters = Array.from(document.querySelectorAll(".filter-row"))
+    .map((row) => {
+      const [field, operator, value] = row.querySelectorAll("select, input");
+      return { field: field.value, operator: operator.value, value: value.value.trim() };
+    })
+    .filter((item) => item.value);
+
+  const fileInput = document.getElementById("loanIdFile");
+  const file = fileInput.files[0];
+  let uploaded_ids = [];
+
+  if (file) {
+    if (!["text/plain", "text/csv", "application/vnd.ms-excel", ""].includes(file.type)) {
+      campaignMessage.textContent = "Unsupported file format. Upload .txt or .csv with Trepp Master Loan IDs only.";
+      return;
+    }
+    const raw = await file.text();
+    uploaded_ids = raw.split(/[\n,]/).map((item) => item.trim()).filter(Boolean);
+    if (!uploaded_ids.length) {
+      campaignMessage.textContent = "Upload file must contain usable Trepp Master Loan IDs. Upload only matches existing Trepp records.";
+      return;
+    }
+  }
+
+  if (!filters.length && !uploaded_ids.length) {
+    campaignMessage.textContent = "Apply at least one filter or upload a Trepp Master Loan ID file.";
+    return;
+  }
+
+  const result = await api("/api/campaigns", {
+    method: "POST",
+    body: JSON.stringify({ campaign_name: name, filters, uploaded_ids }),
+  });
+
+  if (result.error) {
+    campaignMessage.textContent = result.error;
+    return;
+  }
+
+  campaignMessage.textContent = `Campaign "${result.campaign_name}" created successfully with ${result.record_count} records.`;
+});
 
 bootstrap();
