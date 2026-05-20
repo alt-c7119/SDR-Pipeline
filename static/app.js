@@ -1,6 +1,7 @@
 let stages = [];
 let leads = [];
 let treppFilterFields = [];
+let campaigns = [];
 
 const leadRows = document.getElementById("leadRows");
 const drawerBody = document.getElementById("drawerBody");
@@ -14,6 +15,7 @@ const campaignForm = document.getElementById("campaignForm");
 const campaignMessage = document.getElementById("campaignMessage");
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-view]");
 const syncLogRows = document.getElementById("syncLogRows");
+const campaignRows = document.getElementById("campaignRows");
 
 function syncStatusPill(status) {
   if (status === "Success") return '<span class="pill pill-qualified">SUCCESS</span>';
@@ -290,6 +292,49 @@ async function bootstrap() {
 
   renderTable();
   addFilterRow();
+  await loadCampaigns();
+}
+
+function setCampaignsState(state) {
+  document.getElementById("campaignsLoading").classList.toggle("hidden", state !== "loading");
+  document.getElementById("campaignsError").classList.toggle("hidden", state !== "error");
+  document.getElementById("campaignsEmpty").classList.toggle("hidden", state !== "empty");
+  document.getElementById("campaignsTableWrap").classList.toggle("hidden", state !== "ready");
+}
+
+function formatCampaignDate(createdAt) {
+  if (!createdAt) return "-";
+  const parsed = new Date(createdAt);
+  if (Number.isNaN(parsed.getTime())) return createdAt;
+  return parsed.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function renderCampaigns() {
+  campaignRows.innerHTML = campaigns
+    .map(
+      (campaign) => `<tr>
+        <td>${campaign.campaign_name}</td>
+        <td>${campaign.description || "-"}</td>
+        <td>${formatCampaignDate(campaign.created_at)}</td>
+      </tr>`
+    )
+    .join("");
+}
+
+async function loadCampaigns() {
+  setCampaignsState("loading");
+  try {
+    const result = await api("/api/campaigns");
+    campaigns = Array.isArray(result.campaigns) ? result.campaigns : [];
+    if (!campaigns.length) {
+      setCampaignsState("empty");
+      return;
+    }
+    renderCampaigns();
+    setCampaignsState("ready");
+  } catch {
+    setCampaignsState("error");
+  }
 }
 
 function setSyncLogState(state) {
@@ -327,11 +372,13 @@ async function loadSyncLog() {
 }
 
 function showView(viewName) {
+  document.getElementById("campaignsView").classList.toggle("hidden", viewName !== "campaigns");
   document.getElementById("campaignView").classList.toggle("hidden", viewName !== "campaign");
   document.getElementById("pipelineView").classList.toggle("hidden", viewName !== "pipeline");
   document.getElementById("salesforceSyncLogView").classList.toggle("hidden", viewName !== "salesforce-sync-log");
   sidebarLinks.forEach((link) => link.classList.toggle("active", link.dataset.view === viewName));
   if (viewName === "salesforce-sync-log") loadSyncLog();
+  if (viewName === "campaigns") loadCampaigns();
 }
 
 function inputTypeForField(type) {
@@ -392,10 +439,13 @@ sidebarLinks.forEach((link) => {
   });
 });
 
+document.getElementById("openCreateCampaign")?.addEventListener("click", () => showView("campaign"));
+
 campaignForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   campaignMessage.textContent = "";
   const name = document.getElementById("campaignName").value.trim();
+  const description = document.getElementById("campaignDescription").value.trim();
   if (!name) {
     campaignMessage.textContent = "Campaign name is required.";
     return;
@@ -432,7 +482,7 @@ campaignForm?.addEventListener("submit", async (event) => {
 
   const result = await api("/api/campaigns", {
     method: "POST",
-    body: JSON.stringify({ campaign_name: name, filters, uploaded_ids }),
+    body: JSON.stringify({ campaign_name: name, description, filters, uploaded_ids }),
   });
 
   if (result.error) {
@@ -441,6 +491,10 @@ campaignForm?.addEventListener("submit", async (event) => {
   }
 
   campaignMessage.textContent = `Campaign "${result.campaign_name}" created successfully with ${result.record_count} records.`;
+  document.getElementById("campaignName").value = "";
+  document.getElementById("campaignDescription").value = "";
+  document.getElementById("loanIdFile").value = "";
+  await loadCampaigns();
 });
 
 bootstrap();
