@@ -21,7 +21,6 @@ const HIGH_PRIORITY_FIELDS = new Set([
 
 const leadRows = document.getElementById("leadRows");
 const drawerBody = document.getElementById("drawerBody");
-const syncModal = document.getElementById("syncModal");
 const leadCount = document.getElementById("leadCount");
 const drawer = document.getElementById("drawer");
 const drawerToggle = document.getElementById("drawerToggle");
@@ -263,8 +262,8 @@ function buildAccordionSections(lead) {
   return [
     {
       id: "additional-information",
-      title: "Notes & Sync Options",
-      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)} <button id="pushOne" class="btn btn-primary">Push to Salesforce</button>`]],
+      title: "Notes",
+      items: [["Pipeline Stage", `<select id="drawerStage">${stages.map((stage) => `<option ${stage === lead.pipeline_stage ? "selected" : ""}>${stage}</option>`).join("")}</select>`], ["Notes", `<textarea id="drawerNotes">${lead.notes || ""}</textarea><br><button id="saveNote" class="btn btn-primary">Save Note</button>`], ["Salesforce Status", `${formatValue(lead.salesforceStatus)}`]],
     },
     {
       id: "loan-information",
@@ -333,7 +332,6 @@ function renderDrawer(lead) {
 
   const saveNote = document.getElementById("saveNote");
   const drawerStage = document.getElementById("drawerStage");
-  const pushOne = document.getElementById("pushOne");
 
   if (saveNote) {
     saveNote.onclick = async () => {
@@ -359,27 +357,6 @@ function renderDrawer(lead) {
     };
   }
 
-  if (pushOne) {
-    pushOne.onclick = syncQualified;
-  }
-}
-
-async function syncQualified() {
-  const qualified = leads.filter((lead) => lead.pipeline_stage === "Qualified");
-
-  document.getElementById(
-    "syncMessage"
-  ).textContent = `You are about to sync ${qualified.length} qualified leads to Salesforce.`;
-
-  syncModal.showModal();
-
-  document.getElementById("confirmSync").onclick = async () => {
-    const result = await api("/api/sync-qualified", { method: "POST" });
-
-    leads = result.leads;
-    applySearchAndRender();
-    syncModal.close();
-  };
 }
 
 function updateDrawerToggleState(isCollapsed) {
@@ -435,8 +412,6 @@ leadRows.addEventListener("change", async (event) => {
   lead.pipeline_stage = pipeline_stage;
 });
 
-document.getElementById("syncQualified").onclick = syncQualified;
-document.getElementById("cancelSync").onclick = () => syncModal.close();
 
 if (drawer && drawerToggle) {
   const isInitiallyCollapsed = drawer.classList.contains("collapsed");
@@ -637,12 +612,10 @@ function showView(viewName) {
   document.getElementById("campaignsView").classList.toggle("hidden", viewName !== "campaigns");
   document.getElementById("campaignView").classList.toggle("hidden", viewName !== "campaign");
   document.getElementById("pipelineView").classList.toggle("hidden", viewName !== "pipeline");
-  document.getElementById("salesforceSyncLogView").classList.toggle("hidden", viewName !== "salesforce-sync-log");
   sidebarLinks.forEach((link) => link.classList.toggle("active", link.dataset.view === viewName));
   const showLeadDrawer = viewName === "pipeline";
   drawer.classList.toggle("hidden", !showLeadDrawer);
   layout.classList.toggle("lead-drawer-hidden", !showLeadDrawer);
-  if (viewName === "salesforce-sync-log") loadSyncLog();
   if (viewName === "campaigns") loadCampaigns();
 }
 
